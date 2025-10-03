@@ -1,27 +1,90 @@
-//
-//  ContentView.swift
-//  BagPackr
-//
-//  Created by Ömür Şenocak on 1.10.2025
-//
-// MARK: - App Entry Point
-import SwiftUI
-import FirebaseCore
-import GoogleMaps
-import GooglePlaces
-import MapKit
-import Combine
-import GoogleMobileAds
+    //
+    //  ContentView.swift
+    //  BagPackr
+    //
+    //  Created by Ömür Şenocak on 1.10.2025
+    //
+    // MARK: - App Entry Point
+    import SwiftUI
+    import FirebaseCore
+    import GoogleMaps
+    import GooglePlaces
+    import MapKit
+    import Combine
+    import GoogleMobileAds
+    import FirebaseMessaging
+    import UserNotifications
 
+    class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+        func application(_ application: UIApplication,
+                         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+            
+            // Request notification permission
+            UNUserNotificationCenter.current().delegate = self
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, _ in
+                print("Permission granted: \(granted)")
+            }
+            
+            application.registerForRemoteNotifications()
+            
+            Messaging.messaging().delegate = self
+            
+            return true
+        }
+        
+        func application(_ application: UIApplication,
+                         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+            Messaging.messaging().apnsToken = deviceToken
+            print("APNs token set ✅")
+        }
+
+        // Handle FCM token
+        func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+            print("FCM Token: \(fcmToken ?? "")")
+            
+            guard let token = fcmToken,
+                  let userId = Auth.auth().currentUser?.uid else { return }
+            
+            // Save token to Firestore
+            Task {
+                try? await Firestore.firestore()
+                    .collection("users")
+                    .document(userId)
+                    .setData([
+                        "fcmToken": token,
+                        "email": Auth.auth().currentUser?.email ?? "",
+                        "updatedAt": FieldValue.serverTimestamp()
+                    ], merge: true)
+            }
+        }
+        
+        // Handle notification when app is in foreground
+        func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                    willPresent notification: UNNotification,
+                                    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+            completionHandler([.banner, .sound])
+        }
+        
+        // Handle notification tap
+        func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                    didReceive response: UNNotificationResponse,
+                                    withCompletionHandler completionHandler: @escaping () -> Void) {
+            let userInfo = response.notification.request.content.userInfo
+            print("Notification tapped: \(userInfo)")
+            completionHandler()
+        }
+    }
 @main
 struct TravelItineraryApp: App {
     @StateObject private var authViewModel = AuthViewModel()
-    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     init() {
         FirebaseApp.configure()
         GMSServices.provideAPIKey("AIzaSyC5wDKS2_3NMA8mxKhEFzktmiPCY4atE10")
         GMSPlacesClient.provideAPIKey("AIzaSyC5wDKS2_3NMA8mxKhEFzktmiPCY4atE10")
-        MobileAds.shared.start() 
+        MobileAds.shared.start()
 
     }
     
@@ -71,13 +134,14 @@ struct AuthView: View {
                 Spacer()
                 
                 VStack(spacing: 15) {
+                    // Animated icon that changes based on mode
                     ZStack {
                         Circle()
                             .fill(Color.white.opacity(0.2))
                             .frame(width: 120, height: 120)
                             .blur(radius: 20)
                         
-                        Image(systemName: "airplane.departure")
+                        Image(systemName: isSignUp ? "person.badge.plus" : "airplane.departure")
                             .font(.system(size: 70))
                             .foregroundStyle(
                                 LinearGradient(
@@ -86,42 +150,88 @@ struct AuthView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
+                            .transition(.scale.combined(with: .opacity))
+                            .id(isSignUp) // Force view refresh for animation
                     }
                     
-                    Text("Travel Itinerary")
+                    Text("BagPckr")
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
-                    Text("Plan your perfect journey")
+                    // Dynamic subtitle that changes
+                    Text(isSignUp ? "Create your account" : "Plan your perfect journey")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
+                        .transition(.opacity)
+                        .id(isSignUp ? "signup" : "login")
                 }
+                .animation(.spring(response: 0.5), value: isSignUp)
                 
                 VStack(spacing: 20) {
-                    TextField("", text: $email, prompt: Text("Email").foregroundColor(.gray))
+                    // Mode indicator header
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(isSignUp ? "Sign Up" : "Log In")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text(isSignUp ? "Join BagPckr today" : "Welcome back!")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        
+                        Spacer()
+                        
+                        // Visual indicator badge
+                        ZStack {
+                            Circle()
+                                .fill(isSignUp ? Color.green.opacity(0.3) : Color.blue.opacity(0.3))
+                                .frame(width: 50, height: 50)
+                            
+                            Image(systemName: isSignUp ? "person.badge.plus.fill" : "person.fill")
+                                .foregroundColor(.white)
+                                .font(.title3)
+                        }
+                    }
+                    .padding(.bottom, 10)
+                    .transition(.opacity)
+                    
+                    TextField("", text: $email, prompt: Text("Email").foregroundColor(.white.opacity(0.9)))
                         .textFieldStyle(GlassTextFieldStyle())
                         .autocapitalization(.none)
                         .keyboardType(.emailAddress)
+                        .submitLabel(.next)
                     
-                    SecureField("", text: $password, prompt: Text("Password").foregroundColor(.gray))
+                    SecureField("", text: $password, prompt: Text("Password").foregroundColor(.white.opacity(0.9)))
                         .textFieldStyle(GlassTextFieldStyle())
+                        .submitLabel(.done)
+                        .onSubmit {
+                            handleAuth()
+                        }
                     
+                    // Main action button with clear distinction
                     Button(action: handleAuth) {
                         HStack {
                             if isLoading {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text(isSignUp ? "Sign Up" : "Log In")
-                                    .fontWeight(.semibold)
-                                Image(systemName: "arrow.right")
+                                Image(systemName: isSignUp ? "person.crop.circle.badge.plus" : "arrow.right.circle.fill")
+                                    .font(.title3)
+                                
+                                Text(isSignUp ? "Create Account" : "Sign In")
+                                    .fontWeight(.bold)
+                                    .font(.headline)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.2)],
+                                colors: isSignUp
+                                    ? [Color.green.opacity(0.4), Color.green.opacity(0.3)]
+                                    : [Color.white.opacity(0.3), Color.white.opacity(0.2)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -129,13 +239,38 @@ struct AuthView: View {
                         .foregroundColor(.white)
                         .cornerRadius(15)
                         .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.white.opacity(isSignUp ? 0.5 : 0.2), lineWidth: 1)
+                        )
                     }
                     .disabled(isLoading)
                     
-                    Button(action: { withAnimation { isSignUp.toggle() } }) {
-                        Text(isSignUp ? "Already have an account? Log In" : "Don't have an account? Sign Up")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
+                    Divider()
+                        .background(Color.white.opacity(0.3))
+                        .padding(.vertical, 5)
+                    
+                    // Toggle button with better visual feedback
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4)) {
+                            isSignUp.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: isSignUp ? "arrow.left.circle" : "person.crop.circle.badge.plus")
+                                .font(.body)
+                            
+                            Text(isSignUp ? "Already have an account? Log In" : "Don't have an account? Sign Up")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(
+                            Capsule()
+                                .fill(Color.white.opacity(0.15))
+                        )
                     }
                 }
                 .padding(30)
@@ -149,14 +284,18 @@ struct AuthView: View {
                 Spacer()
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(errorMessage)
+            Text("Oops! That email or password doesn’t match our records.")
         }
     }
     
     private func handleAuth() {
+        hideKeyboard()
         isLoading = true
         Task {
             do {
@@ -173,6 +312,11 @@ struct AuthView: View {
             }
         }
     }
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                       to: nil, from: nil, for: nil)
+    }
 }
 
 struct GlassTextFieldStyle: TextFieldStyle {
@@ -186,6 +330,7 @@ struct GlassTextFieldStyle: TextFieldStyle {
             .foregroundColor(.white)
     }
 }
+
 
 // MARK: - Main Tab View
 struct MainTabView: View {
@@ -328,7 +473,7 @@ struct CreateItineraryView: View {
                                     }
                                 }
                                 
-                                Slider(value: $viewModel.budgetPerDay, in: 50...500, step: 10)
+                                Slider(value: $viewModel.budgetPerDay, in: 50...1000, step: 10)
                                     .accentColor(.green)
                                 
                                 HStack {
@@ -340,7 +485,7 @@ struct CreateItineraryView: View {
                                         .font(.caption)
                                         .foregroundColor(.gray)
                                     Spacer()
-                                    Text("$500")
+                                    Text("$1000")
                                         .font(.caption)
                                         .foregroundColor(.gray)
                                 }
@@ -375,7 +520,13 @@ struct CreateItineraryView: View {
                                     TextField("e.g., Temple, Sushi, Kebab", text: $viewModel.customInterestInput)
                                         .padding()
                                         .background(Color.gray.opacity(0.1))
+                                        .submitLabel(.done)
                                         .cornerRadius(10)
+                                        .onSubmit {
+                                              withAnimation(.spring()) {
+                                                  viewModel.addCustomInterest()
+                                              }
+                                          }
                                     
                                     Button(action: { withAnimation(.spring()) { viewModel.addCustomInterest() } }) {
                                         Image(systemName: "plus.circle.fill")
@@ -438,6 +589,9 @@ struct CreateItineraryView: View {
                     }
                     .padding()
                 }
+                .onTapGesture {
+                    hideKeyboard()
+                }
             }
             .navigationTitle("Create Itinerary")
             .sheet(isPresented: $showMapPicker) {
@@ -454,6 +608,12 @@ struct CreateItineraryView: View {
         }
     }
 }
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                       to: nil, from: nil, for: nil)
+    }
+}
 
 struct ModernCard<Content: View>: View {
     let content: Content
@@ -467,7 +627,7 @@ struct ModernCard<Content: View>: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
+                    .fill(Color(.secondarySystemBackground))
                     .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
             )
     }
@@ -511,14 +671,19 @@ struct EnhancedInterestChip: View {
 struct MapPickerView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selectedLocation: LocationData?
+    @State private var searchText = ""
     @State private var mapCenter: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 20.0, longitude: 0.0)
     @State private var selectedCoordinate: CLLocationCoordinate2D?
     @State private var placeName: String = ""
     @State private var isLocationLocked = false
+    @State private var searchResults: [GMSAutocompletePrediction] = []
+    @State private var showResults = false
+    @State private var searchTask: DispatchWorkItem?
     
     var body: some View {
         NavigationView {
-            ZStack(alignment: .bottom) {
+            ZStack {
+                // Map - Background
                 GoogleMapView(
                     center: $mapCenter,
                     selectedCoordinate: $selectedCoordinate,
@@ -527,24 +692,104 @@ struct MapPickerView: View {
                 )
                 .ignoresSafeArea()
                 
-                if selectedCoordinate != nil {
-                    Button(action: confirmSelection) {
+                // Search bar and results - Always on top
+                VStack {
+                    VStack(spacing: 0) {
+                        // Search Bar
                         HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Confirm: \(placeName)")
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+
+                            TextField("Search location", text: $searchText)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .autocorrectionDisabled()
+                                .foregroundColor(.primary)
+                                .onSubmit {
+                                    // Trigger search when user presses Enter/Return
+                                    performSearch()
+                                }
+                            
+                            if !searchText.isEmpty {
+                                Button(action: {
+                                    searchText = ""
+                                    searchResults = []
+                                    showResults = false
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
+                                }
+                            }
                         }
-                        .frame(maxWidth: .infinity)
                         .padding()
                         .background(
-                            LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                         )
-                        .foregroundColor(.white)
-                        .cornerRadius(15)
-                        .shadow(color: .blue.opacity(0.4), radius: 10, x: 0, y: 5)
+                        .padding()
+                        
+                        // Search Results
+                        if showResults && !searchResults.isEmpty {
+                            ScrollView {
+                                VStack(spacing: 0) {
+                                    ForEach(searchResults, id: \.placeID) { result in
+                                        Button(action: { selectSearchResult(result) }) {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(result.attributedPrimaryText.string)
+                                                    .font(.headline)
+                                                    .foregroundColor(.primary)
+                                                
+                                                if let secondary = result.attributedSecondaryText?.string {
+                                                    Text(secondary)
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding()
+                                        }
+                                        
+                                        if result.placeID != searchResults.last?.placeID {
+                                            Divider()
+                                        }
+                                    }
+                                }
+                            }
+                            .frame(maxHeight: 300)
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                            )
+                            .padding(.horizontal)
+                        }
                     }
-                    .padding()
+                    
+                    Spacer()
+                }
+                
+                // Confirm Button - Always at bottom when coordinate selected
+                if selectedCoordinate != nil {
+                    VStack {
+                        Spacer()
+                        
+                        Button(action: confirmSelection) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Confirm: \(placeName)")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                            .shadow(color: .blue.opacity(0.4), radius: 10, x: 0, y: 5)
+                        }
+                        .padding()
+                    }
                 }
             }
             .navigationTitle("Select Location")
@@ -553,6 +798,97 @@ struct MapPickerView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
+            }
+            .onChange(of: searchText) { oldValue, newValue in
+                // Debounce the search - wait 0.3 seconds after user stops typing
+                searchTask?.cancel()
+                
+                guard !newValue.isEmpty else {
+                    searchResults = []
+                    showResults = false
+                    return
+                }
+                
+                let task = DispatchWorkItem { [newValue] in
+                    performSearch(query: newValue)
+                }
+                searchTask = task
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: task)
+            }
+        }
+    }
+    
+    private func performSearch(query: String? = nil) {
+        let searchQuery = query ?? searchText
+        
+        guard !searchQuery.isEmpty else {
+            searchResults = []
+            showResults = false
+            return
+        }
+        
+        print("Searching for: \(searchQuery)")
+        
+        let placesClient = GMSPlacesClient.shared()
+        let filter = GMSAutocompleteFilter()
+        // Remove restrictive types or use nil for all types
+        filter.types = nil  // This allows all place types including cities
+        // Or you can try: filter.types = ["geocode"] for addresses and cities
+        
+        placesClient.findAutocompletePredictions(fromQuery: searchQuery, filter: filter, sessionToken: nil) { results, error in
+            if let error = error {
+                print("Search error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.searchResults = []
+                    self.showResults = false
+                }
+                return
+            }
+            
+            print("Found \(results?.count ?? 0) results")
+            
+            guard let results = results else {
+                DispatchQueue.main.async {
+                    self.searchResults = []
+                    self.showResults = false
+                }
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.searchResults = results
+                self.showResults = true
+                print("Results updated, showing: \(results.count) items")
+            }
+        }
+    }
+    
+    private func selectSearchResult(_ result: GMSAutocompletePrediction) {
+        let placesClient = GMSPlacesClient.shared()
+        
+        print("Selecting place: \(result.attributedPrimaryText.string)")
+        
+        placesClient.fetchPlace(fromPlaceID: result.placeID, placeFields: .all, sessionToken: nil) { place, error in
+            if let error = error {
+                print("Fetch place error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let place = place else {
+                print("No place returned")
+                return
+            }
+            
+            print("Place found: \(place.name ?? "Unknown") at \(place.coordinate.latitude), \(place.coordinate.longitude)")
+            
+            DispatchQueue.main.async {
+                self.mapCenter = place.coordinate
+                self.selectedCoordinate = place.coordinate
+                self.placeName = place.name ?? result.attributedPrimaryText.string
+                self.searchText = self.placeName
+                self.searchResults = []
+                self.showResults = false
+                self.isLocationLocked = true
             }
         }
     }
@@ -568,7 +904,6 @@ struct MapPickerView: View {
         }
     }
 }
-
 struct GoogleMapView: UIViewRepresentable {
     @Binding var center: CLLocationCoordinate2D
     @Binding var selectedCoordinate: CLLocationCoordinate2D?
@@ -1378,10 +1713,10 @@ struct EnhancedItineraryListRow: View {
                 HStack {
                     Label("\(itinerary.duration) days", systemImage: "calendar")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     
                     Text("•")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     
                     Label("$\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))", systemImage: "dollarsign.circle")
                         .font(.caption)
@@ -1395,13 +1730,14 @@ struct EnhancedItineraryListRow: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(Color.blue.opacity(0.1))
+                            .foregroundColor(.primary)
                             .cornerRadius(8)
                     }
                     
                     if itinerary.interests.count > 3 {
                         Text("+\(itinerary.interests.count - 3)")
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     }
                 }
             }
@@ -1415,10 +1751,10 @@ struct EnhancedItineraryListRow: View {
             }
             
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+            .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
@@ -1683,14 +2019,12 @@ struct GroupPlansView: View {
             .sheet(isPresented: $showCreateGroup) {
                 CreateGroupView(viewModel: viewModel)
             }
-            .onAppear {
-                Task {
-                    await viewModel.loadGroupPlans()
-                }
-            }
-            .refreshable {
-                await viewModel.loadGroupPlans()
-            }
+        }
+        .onAppear {
+            viewModel.startListening() // Real-time updates
+        }
+        .onDisappear {
+            viewModel.stopListening()
         }
     }
     
@@ -1700,7 +2034,6 @@ struct GroupPlansView: View {
                 let group = viewModel.groupPlans[index]
                 try? await FirestoreService.shared.deleteGroup(group.id)
             }
-            await viewModel.loadGroupPlans()
         }
     }
 }
@@ -1733,7 +2066,7 @@ struct GroupPlanRow: View {
                 
                 Text(group.itinerary.location)
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 
                 HStack {
                     Label("\(group.members.count) members", systemImage: "person.2")
@@ -1741,21 +2074,21 @@ struct GroupPlanRow: View {
                         .foregroundColor(.purple)
                     
                     Text("•")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     
                     Text(group.createdAt, style: .date)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
@@ -1776,6 +2109,7 @@ struct GroupShareView: View {
             Form {
                 Section(header: Text("Group Details")) {
                     TextField("Group Name", text: $groupName)
+                        .submitLabel(.done)
                     
                     Text("Trip: \(itinerary.location)")
                         .foregroundColor(.gray)
@@ -1788,6 +2122,7 @@ struct GroupShareView: View {
                                 .textContentType(.emailAddress)
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
+                                .submitLabel(.done)
                             
                             if memberEmails.count > 1 {
                                 Button(action: { memberEmails.remove(at: index) }) {
@@ -1881,6 +2216,7 @@ struct CreateGroupView: View {
                 
                 Section(header: Text("Group Name")) {
                     TextField("Enter group name", text: $groupName)
+                        .submitLabel(.done)
                 }
                 
                 Section(header: Text("Invite Members")) {
@@ -1889,6 +2225,7 @@ struct CreateGroupView: View {
                             TextField("Email", text: $memberEmails[index])
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
+                                .submitLabel(.done)
                             
                             if memberEmails.count > 1 {
                                 Button(action: { memberEmails.remove(at: index) }) {
@@ -1923,6 +2260,7 @@ struct CreateGroupView: View {
                     await itineraryViewModel.loadItineraries()
                 }
             }
+           
         }
     }
     
@@ -1936,7 +2274,6 @@ struct CreateGroupView: View {
                 itinerary: itinerary,
                 memberEmails: validEmails
             )
-            await viewModel.loadGroupPlans()
             dismiss()
         }
     }
@@ -1945,152 +2282,117 @@ struct CreateGroupView: View {
 struct GroupDetailView: View {
     let group: GroupPlan
     @State private var showAddMember = false
+    @State private var showAddExpense = false
     @State private var newMemberEmail = ""
     @State private var isAddingMember = false
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var refreshedGroup: GroupPlan?
+    @State private var expenses: [GroupExpense] = []
+    @State private var selectedTab = 0
     
     var currentGroup: GroupPlan {
         refreshedGroup ?? group
     }
     
+    var currentUserEmail: String {
+        Auth.auth().currentUser?.email ?? ""
+    }
+    
+    var isOwner: Bool {
+        currentGroup.members.contains { $0.email == currentUserEmail && $0.isOwner }
+    }
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Group Header
-                ZStack {
-                    LinearGradient(
-                        colors: [.purple, .pink],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: "person.3.fill")
-                                .font(.title)
-                            Text(currentGroup.name)
-                                .font(.title)
-                                .fontWeight(.bold)
-                        }
-                        
-                        Text(currentGroup.itinerary.location)
-                            .font(.title3)
-                        
-                        Text("\(currentGroup.members.count) members • Created \(currentGroup.createdAt, style: .date)")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                }
-                .cornerRadius(20)
-                .padding(.horizontal)
-                
-                // Members List
-                ModernCard {
-                    VStack(alignment: .leading, spacing: 15) {
-                        HStack {
-                            Label("Members", systemImage: "person.2.fill")
-                                .font(.headline)
-                                .foregroundColor(.purple)
-                            
-                            Spacer()
-                            
-                            Button(action: { showAddMember = true }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.purple)
-                            }
-                        }
-                        
-                        ForEach(currentGroup.members, id: \.email) { member in
-                            HStack {
-                                Circle()
-                                    .fill(Color.purple.opacity(0.2))
-                                    .frame(width: 40, height: 40)
-                                    .overlay(
-                                        Text(String(member.email.prefix(1).uppercased()))
-                                            .foregroundColor(.purple)
-                                    )
-                                
-                                VStack(alignment: .leading) {
-                                    Text(member.email)
-                                        .font(.subheadline)
-                                    
-                                    if member.isOwner {
-                                        Text("Owner")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                                
-                                Spacer()
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Itinerary
-                Text("Trip Details")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                
-                ForEach(Array(currentGroup.itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
-                    EnhancedDayPlanCard(
-                        dayNumber: index + 1,
-                        plan: plan,
-                        location: currentGroup.itinerary.location,
-                        itinerary: currentGroup.itinerary
-                    )
-                }
+        VStack(spacing: 0) {
+            Picker("View", selection: $selectedTab) {
+                Text("Itinerary").tag(0)
+                Text("Members").tag(1) // New tab
+                Text("Expenses").tag(2)
+                Text("Balances").tag(3)
             }
-            .padding(.vertical)
+            .pickerStyle(.segmented)
+            .padding()
+            
+            TabView(selection: $selectedTab) {
+                ItineraryTabView(group: currentGroup)
+                    .tag(0)
+                
+                MembersTabView(
+                    group: currentGroup,
+                    isOwner: isOwner,
+                    onMemberRemoved: { await refreshGroup() }
+                )
+                .tag(1)
+                
+                ExpensesTabView(
+                    groupId: currentGroup.id,
+                    expenses: $expenses,
+                    members: currentGroup.members
+                )
+                .tag(2)
+                
+                BalancesTabView(
+                    expenses: expenses,
+                    members: currentGroup.members
+                )
+                .tag(3)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
         }
         .background(Color(.systemGroupedBackground))
         .navigationTitle(currentGroup.name)
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showAddMember) {
-            NavigationView {
-                Form {
-                    Section(header: Text("Add Member")) {
-                        TextField("Email address", text: $newMemberEmail)
-                            .textContentType(.emailAddress)
-                            .autocapitalization(.none)
-                            .keyboardType(.emailAddress)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: { showAddMember = true }) {
+                        Label("Add Member", systemImage: "person.badge.plus")
                     }
+                    .disabled(!isOwner)
                     
-                    Section {
-                        Button(action: addMember) {
-                            if isAddingMember {
-                                ProgressView()
-                            } else {
-                                Text("Add Member")
-                                    .frame(maxWidth: .infinity)
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                        .disabled(newMemberEmail.isEmpty || isAddingMember)
+                    Button(action: { showAddExpense = true }) {
+                        Label("Add Expense", systemImage: "plus.circle")
                     }
-                }
-                .navigationTitle("Invite Member")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            newMemberEmail = ""
-                            showAddMember = false
-                        }
-                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
+        }
+        .sheet(isPresented: $showAddMember) {
+            AddMemberSheet(
+                newMemberEmail: $newMemberEmail,
+                isAddingMember: $isAddingMember,
+                onAdd: { addMember() }
+            )
+        }
+        .sheet(isPresented: $showAddExpense) {
+            AddExpenseView(
+                groupId: currentGroup.id,
+                members: currentGroup.members,
+                onExpenseAdded: {
+                    Task {
+                        await loadExpenses()
+                    }
+                }
+            )
         }
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
+        }
+        .task {
+            await loadExpenses()
+        }
+    }
+    
+    private func loadExpenses() async {
+        do {
+            expenses = try await FirestoreService.shared.fetchGroupExpenses(groupId: currentGroup.id)
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
     
@@ -2103,12 +2405,7 @@ struct GroupDetailView: View {
         Task {
             do {
                 try await FirestoreService.shared.addMemberToGroup(groupId: currentGroup.id, memberEmail: email)
-                
-                // Refresh the group data
-                if let updated = try? await FirestoreService.shared.getGroupById(groupId: currentGroup.id) {
-                    refreshedGroup = updated
-                }
-                
+                await refreshGroup()
                 newMemberEmail = ""
                 showAddMember = false
                 isAddingMember = false
@@ -2119,7 +2416,166 @@ struct GroupDetailView: View {
             }
         }
     }
+    
+    private func refreshGroup() async {
+        if let updated = try? await FirestoreService.shared.getGroupById(groupId: currentGroup.id) {
+            refreshedGroup = updated
+        }
+    }
 }
+
+// New Members Tab View
+struct MembersTabView: View {
+    let group: GroupPlan
+    let isOwner: Bool
+    let onMemberRemoved: () async -> Void
+    
+    @State private var showRemoveAlert = false
+    @State private var memberToRemove: GroupMember?
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    var currentUserEmail: String {
+        Auth.auth().currentUser?.email ?? ""
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 15) {
+                ModernCard {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Label("Members", systemImage: "person.2.fill")
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                            
+                            Spacer()
+                            
+                            Text("\(group.members.count) total")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        ForEach(group.members, id: \.email) { member in
+                            MemberRow(
+                                member: member,
+                                isCurrentUser: member.email == currentUserEmail,
+                                canRemove: isOwner && !member.isOwner && member.email != currentUserEmail,
+                                onRemove: {
+                                    memberToRemove = member
+                                    showRemoveAlert = true
+                                }
+                            )
+                            
+                            if member.email != group.members.last?.email {
+                                Divider()
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.vertical)
+        }
+        .alert("Remove Member", isPresented: $showRemoveAlert) {
+            Button("Cancel", role: .cancel) {
+                memberToRemove = nil
+            }
+            Button("Remove", role: .destructive) {
+                if let member = memberToRemove {
+                    removeMember(member)
+                }
+            }
+        } message: {
+            if let member = memberToRemove {
+                Text("Remove \(member.email.components(separatedBy: "@").first ?? member.email) from the group?")
+            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    private func removeMember(_ member: GroupMember) {
+        Task {
+            do {
+                try await FirestoreService.shared.removeMemberFromGroup(
+                    groupId: group.id,
+                    memberEmail: member.email
+                )
+                await onMemberRemoved()
+                memberToRemove = nil
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+}
+
+struct MemberRow: View {
+    let member: GroupMember
+    let isCurrentUser: Bool
+    let canRemove: Bool
+    let onRemove: () -> Void
+    
+    var memberName: String {
+        member.email.components(separatedBy: "@").first ?? member.email
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(member.isOwner ? Color.purple.opacity(0.2) : Color.blue.opacity(0.2))
+                    .frame(width: 45, height: 45)
+                
+                Image(systemName: member.isOwner ? "crown.fill" : "person.fill")
+                    .foregroundColor(member.isOwner ? .purple : .blue)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(memberName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    if isCurrentUser {
+                        Text("(You)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                HStack {
+                    Text(member.email)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if member.isOwner {
+                        Text("• Owner")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            if canRemove {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                        .font(.title3)
+                }
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
 
 // MARK: - Edit Itinerary View
 struct EditItineraryView: View {
@@ -2217,7 +2673,7 @@ struct EditItineraryView: View {
                                 .font(.system(size: 36, weight: .bold))
                                 .foregroundColor(.green)
                             
-                            Slider(value: $editedBudget, in: 50...500, step: 10)
+                            Slider(value: $editedBudget, in: 50...1000, step: 10)
                                 .accentColor(.green)
                         }
                     }
@@ -2259,6 +2715,7 @@ struct EditItineraryView: View {
                                     .padding()
                                     .background(Color.gray.opacity(0.1))
                                     .cornerRadius(10)
+                                    .submitLabel(.done)
                                 
                                 Button(action: addCustomInterest) {
                                     Image(systemName: "plus.circle.fill")
@@ -2382,10 +2839,29 @@ struct EditItineraryView: View {
 }
 
 // MARK: - Profile View
+
+import SwiftUI
+import FirebaseAuth
+
+// Add this custom text field style
+struct StyledTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding()
+            .background(Color(.tertiarySystemBackground))
+            .cornerRadius(10)
+    }
+}
+
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var showSignOutAlert = false
-    
+    @State private var showDeleteSheet = false
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isDeleting = false
+    @State private var deleteError: String?
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -2398,6 +2874,8 @@ struct ProfileView: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
+                        
+                        // 🔹 User Info Card
                         ModernCard {
                             HStack(spacing: 20) {
                                 ZStack {
@@ -2444,6 +2922,7 @@ struct ProfileView: View {
                             .padding()
                         }
                         
+                        // 🔹 About Card
                         ModernCard {
                             VStack(alignment: .leading, spacing: 15) {
                                 Text("About")
@@ -2453,9 +2932,12 @@ struct ProfileView: View {
                                 InfoRow(icon: "sparkles", title: "AI Powered", subtitle: "Gemini Integration")
                                 InfoRow(icon: "map.fill", title: "Google Maps", subtitle: "Location Services")
                                 InfoRow(icon: "person.3.fill", title: "Group Plans", subtitle: "Collaborate with friends")
+                                InfoRow(icon: "exclamationmark.triangle.fill", title: "Verify Details", subtitle: "Results may not be 100% accurate.")
+
                             }
                         }
                         
+                        // 🔹 Sign Out Button
                         Button(action: { showSignOutAlert = true }) {
                             HStack {
                                 Image(systemName: "arrow.right.square")
@@ -2469,11 +2951,31 @@ struct ProfileView: View {
                             .cornerRadius(15)
                         }
                         .padding(.horizontal)
+                        
+                        // 🔹 Delete Account Button
+                        Button(role: .destructive) {
+                            showDeleteSheet = true
+                            email = authViewModel.currentUser?.email ?? ""
+                        } label: {
+                            HStack {
+                                Image(systemName: "trash.fill")
+                                Text("Delete My Account")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.15))
+                            .foregroundColor(.red)
+                            .cornerRadius(15)
+                        }
+                        .padding(.horizontal)
                     }
                     .padding()
                 }
             }
             .navigationTitle("Profile")
+            
+            // 🔹 Sign Out Alert
             .alert("Sign Out", isPresented: $showSignOutAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Sign Out", role: .destructive) {
@@ -2482,9 +2984,187 @@ struct ProfileView: View {
             } message: {
                 Text("Are you sure you want to sign out?")
             }
+            
+            // 🔹 Delete Account Sheet
+            .sheet(isPresented: $showDeleteSheet) {
+                NavigationView {
+                    ZStack {
+                        LinearGradient(
+                            colors: [Color.red.opacity(0.05), Color.orange.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+                        
+                        ScrollView {
+                            VStack(spacing: 25) {
+                                // Warning Icon
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [.red.opacity(0.2), .orange.opacity(0.2)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 100, height: 100)
+                                    
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(.red)
+                                }
+                                .padding(.top, 20)
+                                
+                                VStack(spacing: 8) {
+                                    Text("Delete Account")
+                                        .font(.title)
+                                        .fontWeight(.bold)
+                                    
+                                    Text("This action cannot be undone")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                // Warning Card
+                                ModernCard {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "info.circle.fill")
+                                            .foregroundColor(.orange)
+                                            .font(.title2)
+                                        
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("This will permanently delete:")
+                                                .font(.subheadline)
+                                                .fontWeight(.semibold)
+                                            
+                                            Text("• Your account\n• All itineraries\n• Group memberships\n• Expense records")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding()
+                                }
+                                
+                                // Credentials Card
+                                ModernCard {
+                                    VStack(alignment: .leading, spacing: 15) {
+                                        Text("Confirm Your Identity")
+                                            .font(.headline)
+                                        
+                                        VStack(spacing: 12) {
+                                            TextField("", text: $email, prompt: Text("Email").foregroundColor(.secondary))
+                                                .textFieldStyle(StyledTextFieldStyle())
+                                                .autocapitalization(.none)
+                                                .disableAutocorrection(true)
+                                                .submitLabel(.next)
+                                            
+                                            SecureField("", text: $password, prompt: Text("Password").foregroundColor(.secondary))
+                                                .textFieldStyle(StyledTextFieldStyle())
+                                                .submitLabel(.done)
+                                        }
+                                        
+                                        if let deleteError = deleteError {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .foregroundColor(.red)
+                                                Text(deleteError)
+                                                    .font(.caption)
+                                                    .foregroundColor(.red)
+                                            }
+                                            .padding(.top, 5)
+                                        }
+                                    }
+                                    .padding()
+                                }
+                                
+                                // Action Buttons
+                                VStack(spacing: 12) {
+                                    if isDeleting {
+                                        HStack {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle())
+                                            Text("Deleting account...")
+                                                .font(.subheadline)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color(.secondarySystemBackground))
+                                        .cornerRadius(15)
+                                    } else {
+                                        Button(role: .destructive) {
+                                            isDeleting = true
+                                            authViewModel.deleteAccount(email: email, password: password) { error in
+                                                isDeleting = false
+                                                if let error = error {
+                                                    deleteError = error.localizedDescription
+                                                } else {
+                                                    showDeleteSheet = false
+                                                }
+                                            }
+                                        } label: {
+                                            HStack {
+                                                Image(systemName: "trash.fill")
+                                                Text("Delete Account Permanently")
+                                                    .fontWeight(.semibold)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(
+                                                LinearGradient(
+                                                    colors: [Color.red, Color.orange],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .foregroundColor(.white)
+                                            .cornerRadius(15)
+                                            .shadow(color: .red.opacity(0.3), radius: 10, x: 0, y: 5)
+                                        }
+                                        .disabled(email.isEmpty || password.isEmpty)
+                                        .opacity((email.isEmpty || password.isEmpty) ? 0.5 : 1.0)
+                                        
+                                        Button {
+                                            showDeleteSheet = false
+                                        } label: {
+                                            HStack {
+                                                Image(systemName: "xmark.circle")
+                                                Text(String(localized:"Cancel"))
+                                                    .fontWeight(.medium)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color(.secondarySystemBackground))
+                                            .foregroundColor(.primary)
+                                            .cornerRadius(15)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding()
+                        }
+                    }
+                    .navigationTitle("")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Close") {
+                                showDeleteSheet = false
+                            }
+                        }
+                    }
+                }
+            }
+
+       
         }
     }
 }
+
+
+
 
 struct InfoRow: View {
     let icon: String
@@ -2512,394 +3192,807 @@ struct InfoRow: View {
     }
 }
 
-// MARK: - Models
-struct LocationData: Codable {
-    let name: String
-    let latitude: Double
-    let longitude: Double
-}
 
-struct Itinerary: Identifiable, Codable, Equatable, Hashable {
-    let id: String
-    let userId: String
-    let location: String
-    let duration: Int
-    let interests: [String]
-    let dailyPlans: [DailyPlan]
-    let budgetPerDay: Double
-    let createdAt: Date
-    var isShared: Bool = false
-    
-    init(id: String = UUID().uuidString,
-         userId: String,
-         location: String,
-         duration: Int,
-         interests: [String],
-         dailyPlans: [DailyPlan],
-         budgetPerDay: Double = 150,
-         createdAt: Date = Date(),
-         isShared: Bool = false) {
-        self.id = id
-        self.userId = userId
-        self.location = location
-        self.duration = duration
-        self.interests = interests
-        self.dailyPlans = dailyPlans
-        self.budgetPerDay = budgetPerDay
-        self.createdAt = createdAt
-        self.isShared = isShared
-    }
-    
-    static func == (lhs: Itinerary, rhs: Itinerary) -> Bool {
-        lhs.id == rhs.id
-    }
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
 
-struct DailyPlan: Identifiable, Codable {
-    let id: String
-    let day: Int
-    let activities: [Activity]
+
+
+
+struct ItineraryTabView: View {
+    let group: GroupPlan
     
-    init(id: String = UUID().uuidString, day: Int, activities: [Activity]) {
-        self.id = id
-        self.day = day
-        self.activities = activities
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                ZStack {
+                    LinearGradient(
+                        colors: [.purple, .pink],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "mappin.circle.fill")
+                                .font(.title2)
+                            Text(group.itinerary.location)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                        }
+                        
+                        HStack {
+                            Label("\(group.itinerary.duration) days", systemImage: "calendar")
+                            Spacer()
+                            Label("\(group.members.count) members", systemImage: "person.2")
+                        }
+                        .font(.subheadline)
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                }
+                .cornerRadius(20)
+                .padding(.horizontal)
+                
+                ForEach(Array(group.itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
+                    EnhancedDayPlanCard(
+                        dayNumber: index + 1,
+                        plan: plan,
+                        location: group.itinerary.location,
+                        itinerary: group.itinerary
+                    )
+                }
+            }
+            .padding(.vertical)
+        }
     }
 }
-
-struct Activity: Identifiable, Codable {
-    let id: String
-    let name: String
-    let type: String
-    let description: String
-    let time: String
-    let distance: Double
-    let cost: Double
-    var coordinate: CLLocationCoordinate2D?
-    
-    init(id: String = UUID().uuidString, name: String, type: String, description: String, time: String, distance: Double, cost: Double = 0, coordinate: CLLocationCoordinate2D? = nil) {
-        self.id = id
-        self.name = name
-        self.type = type
-        self.description = description
-        self.time = time
-        self.distance = distance
-        self.cost = cost
-        self.coordinate = coordinate
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id, name, type, description, time, distance, cost
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(String.self, forKey: .id)
-        name = try container.decode(String.self, forKey: .name)
-        type = try container.decode(String.self, forKey: .type)
-        description = try container.decode(String.self, forKey: .description)
-        time = try container.decode(String.self, forKey: .time)
-        distance = try container.decode(Double.self, forKey: .distance)
-        cost = try container.decode(Double.self, forKey: .cost)
-        coordinate = nil
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(name, forKey: .name)
-        try container.encode(type, forKey: .type)
-        try container.encode(description, forKey: .description)
-        try container.encode(time, forKey: .time)
-        try container.encode(distance, forKey: .distance)
-        try container.encode(cost, forKey: .cost)
-    }
-}
-
-struct GroupPlan: Identifiable, Codable {
-    let id: String
-    let name: String
-    let itinerary: Itinerary
+struct ExpensesTabView: View {
+    let groupId: String
+    @Binding var expenses: [GroupExpense]
     let members: [GroupMember]
-    let memberEmails: [String] // For Firestore querying
-    let createdAt: Date
+    @State private var showError = false
+    @State private var errorMessage = ""
     
-    init(id: String = UUID().uuidString, name: String, itinerary: Itinerary, members: [GroupMember], createdAt: Date = Date()) {
-        self.id = id
-        self.name = name
-        self.itinerary = itinerary
+    var totalExpenses: Double {
+        expenses.reduce(0) { $0 + $1.amount }
+    }
+    
+    var expensesByCategory: [(category: ExpenseCategory, amount: Double)] {
+        Dictionary(grouping: expenses, by: { $0.category })
+            .map { (category: $0.key, amount: $0.value.reduce(0) { $0 + $1.amount }) }
+            .sorted { $0.amount > $1.amount }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                ModernCard {
+                    VStack(spacing: 15) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Total Expenses")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text("$\(String(format: "%.2f", totalExpenses))")
+                                    .font(.system(size: 36, weight: .bold))
+                                    .foregroundColor(.purple)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing) {
+                                Text("\(expenses.count)")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                Text("transactions")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        if !expensesByCategory.isEmpty {
+                            Divider()
+                            
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("By Category")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                ForEach(expensesByCategory, id: \.category) { item in
+                                    HStack {
+                                        Image(systemName: item.category.icon)
+                                            .foregroundColor(item.category.color)
+                                            .frame(width: 25)
+                                        
+                                        Text(item.category.rawValue)
+                                            .font(.subheadline)
+                                        
+                                        Spacer()
+                                        
+                                        Text("$\(String(format: "%.2f", item.amount))")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(item.category.color)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                if expenses.isEmpty {
+                    VStack(spacing: 15) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 50))
+                            .foregroundColor(.gray)
+                        
+                        Text("No expenses yet")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        
+                        Text("Add your first expense to start tracking")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+                    .transition(.opacity.combined(with: .scale))
+                } else {
+                    LazyVStack(spacing: 12) {
+                        ForEach(expenses) { expense in
+                            ExpenseRow(
+                                expense: expense,
+                                members: members,
+                                onDelete: { deleteExpense(expense) }
+                            )
+                            .transition(.asymmetric(
+                                insertion: .scale.combined(with: .opacity),
+                                removal: .move(edge: .trailing).combined(with: .opacity)
+                            ))
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .padding(.vertical)
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    private func deleteExpense(_ expense: GroupExpense) {
+        Task {
+            do {
+                // Animate the removal
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    expenses.removeAll { $0.id == expense.id }
+                }
+                
+                // Delete from Firestore
+                try await FirestoreService.shared.deleteExpense(groupId: groupId, expenseId: expense.id)
+            } catch {
+                // If deletion fails, restore the expense
+                withAnimation {
+                    if let deletedExpense = expense as? GroupExpense {
+                        expenses.append(deletedExpense)
+                        expenses.sort { $0.date > $1.date }
+                    }
+                }
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+        }
+    }
+}
+
+struct EditExpenseView: View {
+    @Environment(\.dismiss) var dismiss
+    let groupId: String
+    let expense: GroupExpense
+    let members: [GroupMember]
+    let onExpenseUpdated: () -> Void
+    
+    @State private var description: String
+    @State private var amount: String
+    @State private var selectedCategory: ExpenseCategory
+    @State private var isUpdating = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    init(groupId: String, expense: GroupExpense, members: [GroupMember], onExpenseUpdated: @escaping () -> Void) {
+        self.groupId = groupId
+        self.expense = expense
         self.members = members
-        self.memberEmails = members.map { $0.email } // Extract emails for querying
-        self.createdAt = createdAt
-    }
-}
-
-struct GroupMember: Codable {
-    let email: String
-    let isOwner: Bool
-    
-    init(email: String, isOwner: Bool = false) {
-        self.email = email
-        self.isOwner = isOwner
-    }
-}
-
-// MARK: - View Models
-import FirebaseAuth
-import FirebaseFirestore
-import GoogleGenerativeAI
-
-@MainActor
-class AuthViewModel: ObservableObject {
-    @Published var isAuthenticated = false
-    @Published var currentUser: User?
-    
-    init() {
-        checkAuth()
+        self.onExpenseUpdated = onExpenseUpdated
+        
+        _description = State(initialValue: expense.description)
+        _amount = State(initialValue: String(format: "%.2f", expense.amount))
+        _selectedCategory = State(initialValue: expense.category)
     }
     
-    func checkAuth() {
-        if let user = Auth.auth().currentUser {
-            self.currentUser = user
-            self.isAuthenticated = true
+    var canUpdate: Bool {
+        !description.isEmpty && !amount.isEmpty && Double(amount) != nil
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Expense Details")) {
+                    TextField("Description", text: $description)
+                    
+                    TextField("Amount", text: $amount)
+                        .keyboardType(.decimalPad)
+                    
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(ExpenseCategory.allCases, id: \.self) { category in
+                            HStack {
+                                Image(systemName: category.icon)
+                                Text(category.rawValue)
+                            }
+                            .tag(category)
+                        }
+                    }
+                }
+                
+                Section {
+                    Text("Paid by: \(expense.paidBy.components(separatedBy: "@").first ?? "Unknown")")
+                        .foregroundColor(.secondary)
+                    
+                    Text("Split between: \(expense.splitBetween.count) members")
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("Edit Expense")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        updateExpense()
+                    }
+                    .disabled(!canUpdate || isUpdating)
+                }
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
         }
     }
     
-    func signIn(email: String, password: String) async throws {
-        let result = try await Auth.auth().signIn(withEmail: email, password: password)
-        self.currentUser = result.user
-        self.isAuthenticated = true
-    }
-    
-    func signUp(email: String, password: String) async throws {
-        let result = try await Auth.auth().createUser(withEmail: email, password: password)
-        self.currentUser = result.user
-        self.isAuthenticated = true
-    }
-    
-    func signOut() {
-        try? Auth.auth().signOut()
-        self.currentUser = nil
-        self.isAuthenticated = false
-    }
-}
-
-@MainActor
-class CreateItineraryViewModel: ObservableObject {
-    @Published var selectedLocation: LocationData?
-    @Published var duration = 3
-    @Published var budgetPerDay: Double = 150
-    @Published var selectedInterests: Set<String> = []
-    @Published var customInterestInput = ""
-    @Published var customInterests: [String] = []
-    @Published var isGenerating = false
-    @Published var generatedItinerary: Itinerary?
-    @Published var showError = false
-    @Published var errorMessage = ""
-    
-    let builtInInterests = [
-        "Beaches", "Nightlife", "Restaurants", "Museums",
-        "Shopping", "Parks", "Adventure Sports", "Historical Sites",
-        "Art Galleries", "Local Markets", "Street Food", "Temples",
-        "Architecture", "Photography", "Hiking", "Water Sports",
-        "Cafes", "Live Music", "Theater", "Festivals"
-    ]
-    
-    var canGenerate: Bool {
-        selectedLocation != nil && !selectedInterests.isEmpty
-    }
-    
-    func toggleInterest(_ interest: String) {
-        if selectedInterests.contains(interest) {
-            selectedInterests.remove(interest)
-        } else {
-            selectedInterests.insert(interest)
-        }
-    }
-    
-    func addCustomInterest() {
-        let trimmed = customInterestInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+    private func updateExpense() {
+        guard let amountValue = Double(amount) else { return }
         
-        customInterests.append(trimmed)
-        selectedInterests.insert(trimmed)
-        customInterestInput = ""
-    }
-    
-    func removeCustomInterest(_ interest: String) {
-        customInterests.removeAll { $0 == interest }
-        selectedInterests.remove(interest)
-    }
-    
-    // FIX #3: Pass itineraryListViewModel to refresh the list
-    func generateItinerary(itineraryListViewModel: ItineraryListViewModel) {
-        guard let location = selectedLocation else { return }
-        
-        isGenerating = true
+        isUpdating = true
         
         Task {
             do {
-                let itinerary = try await GeminiService.shared.generateItinerary(
-                    location: location,
-                    duration: duration,
-                    interests: Array(selectedInterests),
-                    budgetPerDay: budgetPerDay
+                try await FirestoreService.shared.updateExpense(
+                    groupId: groupId,
+                    expenseId: expense.id,
+                    description: description,
+                    amount: amountValue,
+                    category: selectedCategory
                 )
-                
-                try await FirestoreService.shared.saveItinerary(itinerary)
-                
-                // FIX #3: Reload the list after saving
-                await itineraryListViewModel.loadItineraries()
-                
-                generatedItinerary = itinerary
-                isGenerating = false
+                onExpenseUpdated()
+                dismiss()
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
-                isGenerating = false
+                isUpdating = false
             }
         }
     }
 }
-
-@MainActor
-class ItineraryListViewModel: ObservableObject {
-    @Published var itineraries: [Itinerary] = []
+struct ExpenseRow: View {
+    let expense: GroupExpense
+    let members: [GroupMember]
+    let onDelete: () -> Void
+    @State private var isDeleting = false
     
-    func loadItineraries() async {
-        do {
-            itineraries = try await FirestoreService.shared.fetchItineraries()
-        } catch {
-            print("Error loading itineraries: \(error)")
-        }
-    }
-}
-
-@MainActor
-class GroupPlansViewModel: ObservableObject {
-    @Published var groupPlans: [GroupPlan] = []
-    
-    func loadGroupPlans() async {
-        do {
-            groupPlans = try await FirestoreService.shared.fetchGroupPlans()
-        } catch {
-            print("Error loading group plans: \(error)")
-        }
-    }
-}
-
-// MARK: - Services
-class GeminiService {
-    static let shared = GeminiService()
-    private let model: GenerativeModel
-    
-    private init() {
-        model = GenerativeModel(name: "gemini-2.5-flash", apiKey: "AIzaSyAoUnnvwIeBbxYo0RncGtteOJCaViLwJRI")
+    var paidByName: String {
+        expense.paidBy.components(separatedBy: "@").first ?? "Unknown"
     }
     
-    func generateItinerary(location: LocationData, duration: Int, interests: [String], budgetPerDay: Double) async throws -> Itinerary {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+    var splitInfo: String {
+        if expense.splitBetween.count == members.count {
+            return "Split equally"
+        } else {
+            return "Split \(expense.splitBetween.count) ways"
         }
-        
-        let prompt = """
-        Create a \(duration)-day itinerary for \(location.name).
-        
-        Interests: \(interests.joined(separator: ", "))
-        Daily budget: $\(Int(budgetPerDay))
-        
-        Rules:
-        - 4-5 activities per day with variety
-        - Real place names in \(location.name)
-        - Include time (e.g., "09:00 AM - 11:00 AM"), distance (km), and cost ($)
-        - Daily costs should total ~$\(Int(budgetPerDay))
-        - Don't repeat similar activities
-        
-        Return ONLY this JSON (no markdown):
-        {
-          "dailyPlans": [
-            {
-              "day": 1,
-              "activities": [
-                {
-                  "name": "Place Name",
-                  "type": "Beach/Restaurant/Museum/etc",
-                  "description": "Brief description",
-                  "time": "09:00 AM - 11:00 AM",
-                  "distance": 2.5,
-                  "cost": 25.0
+    }
+    
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(expense.category.color.opacity(0.2))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: expense.category.icon)
+                        .foregroundColor(expense.category.color)
+                        .font(.title3)
                 }
-              ]
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(expense.description)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    HStack {
+                        Text(paidByName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        
+                        Text(splitInfo)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text(expense.date, style: .date)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Text("$\(String(format: "%.2f", expense.amount))")
+                    .font(.headline)
+                    .foregroundColor(expense.category.color)
+                    .padding(.trailing, 30)
             }
-          ]
-        }
-        """
-        
-        let response = try await model.generateContent(prompt)
-        
-        guard let text = response.text else {
-            throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: "No response from Gemini"])
-        }
-        
-        let cleanedText = text
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        guard let data = cleanedText.data(using: .utf8) else {
-            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to convert response"])
-        }
-        
-        let decoder = JSONDecoder()
-        let geminiResponse = try decoder.decode(GeminiResponse.self, from: data)
-        
-        let dailyPlans = geminiResponse.dailyPlans.map { plan in
-            DailyPlan(
-                day: plan.day,
-                activities: plan.activities.map { activity in
-                    Activity(
-                        name: activity.name,
-                        type: activity.type,
-                        description: activity.description,
-                        time: activity.time,
-                        distance: activity.distance,
-                        cost: activity.cost
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(15)
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .opacity(isDeleting ? 0.5 : 1.0)
+            .scaleEffect(isDeleting ? 0.95 : 1.0)
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    isDeleting = true
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    onDelete()
+                }
+            }) {
+                Image(systemName: "minus.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.red)
+                    .background(
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 20, height: 20)
                     )
-                }
-            )
+            }
+            .offset(x: -8, y: 8)
+            .scaleEffect(isDeleting ? 0.8 : 1.0)
         }
-        
-        return Itinerary(
-            userId: userId,
-            location: location.name,
-            duration: duration,
-            interests: interests,
-            dailyPlans: dailyPlans,
-            budgetPerDay: budgetPerDay
-        )
     }
 }
 
-struct GeminiResponse: Codable {
-    let dailyPlans: [GeminiDailyPlan]
+struct BalancesTabView: View {
+    let expenses: [GroupExpense]
+    let members: [GroupMember]
+    
+    var balances: [Balance] {
+        calculateBalances()
+    }
+    
+    var settlements: [Settlement] {
+        calculateSettlements()
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                ModernCard {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Label("Member Balances", systemImage: "person.2.fill")
+                            .font(.headline)
+                            .foregroundColor(.purple)
+                        
+                        if balances.isEmpty {
+                            Text("No expenses to calculate")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .padding()
+                        } else {
+                            ForEach(balances, id: \.person) { balance in
+                                BalanceRow(balance: balance)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                if !settlements.isEmpty {
+                    ModernCard {
+                        VStack(alignment: .leading, spacing: 15) {
+                            Label("Settle Up", systemImage: "arrow.left.arrow.right")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                            
+                            ForEach(settlements.indices, id: \.self) { index in
+                                SettlementRow(settlement: settlements[index])
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .padding(.vertical)
+        }
+    }
+    
+    private func calculateBalances() -> [Balance] {
+        var balanceMap: [String: Double] = [:]
+        
+        for member in members {
+            balanceMap[member.email] = 0
+        }
+        
+        for expense in expenses {
+            let shareAmount = expense.amount / Double(expense.splitBetween.count)
+            balanceMap[expense.paidBy, default: 0] += expense.amount
+            
+            for person in expense.splitBetween {
+                balanceMap[person, default: 0] -= shareAmount
+            }
+        }
+        
+        return balanceMap.map { Balance(person: $0.key, amount: $0.value) }
+            .sorted { abs($0.amount) > abs($1.amount) }
+    }
+    private func calculateSettlements() -> [Settlement] {
+        // Step 1: Build creditors and debtors separately
+        var creditors: [(person: String, amount: Double)] = balances
+            .filter { $0.amount > 0.01 }
+            .map { (person: $0.person, amount: $0.amount) }
+        
+        var debtors: [(person: String, amount: Double)] = balances
+            .filter { $0.amount < -0.01 }
+            .map { (person: $0.person, amount: abs($0.amount)) }
+        
+        // Step 2: Sort deterministically
+        creditors.sort {
+            if abs($0.amount - $1.amount) < 0.01 {
+                return $0.person < $1.person
+            }
+            return $0.amount > $1.amount
+        }
+        
+        debtors.sort {
+            if abs($0.amount - $1.amount) < 0.01 {
+                return $0.person < $1.person
+            }
+            return $0.amount > $1.amount
+        }
+        
+        // Step 3: Match creditors and debtors greedily
+        var settlements: [Settlement] = []
+        var i = 0, j = 0
+        
+        while i < creditors.count && j < debtors.count {
+            let amountToSettle = min(creditors[i].amount, debtors[j].amount)
+            
+            settlements.append(Settlement(
+                from: debtors[j].person,
+                to: creditors[i].person,
+                amount: amountToSettle
+            ))
+            
+            creditors[i].amount -= amountToSettle
+            debtors[j].amount -= amountToSettle
+            
+            if creditors[i].amount < 0.01 { i += 1 }
+            if debtors[j].amount < 0.01 { j += 1 }
+        }
+        
+        return settlements
+    }
+
 }
 
-struct GeminiDailyPlan: Codable {
-    let day: Int
-    let activities: [GeminiActivity]
+struct BalanceRow: View {
+    let balance: Balance
+    
+    var name: String {
+        balance.person.components(separatedBy: "@").first ?? "Unknown"
+    }
+    
+    var isBalanced: Bool {
+        abs(balance.amount) < 0.01
+    }
+    
+    var body: some View {
+        HStack {
+            Text(name)
+                .font(.subheadline)
+            
+            Spacer()
+            
+            if isBalanced {
+                Text("Settled")
+                    .font(.subheadline)
+                    .foregroundColor(.green)
+            } else if balance.amount > 0 {
+                Text("gets back $\(String(format: "%.2f", balance.amount))")
+                    .font(.subheadline)
+                    .foregroundColor(.green)
+            } else {
+                Text("owes $\(String(format: "%.2f", abs(balance.amount)))")
+                    .font(.subheadline)
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(.vertical, 8)
+    }
 }
 
-struct GeminiActivity: Codable {
-    let name: String
-    let type: String
-    let description: String
-    let time: String
-    let distance: Double
-    let cost: Double
+struct SettlementRow: View {
+    let settlement: Settlement
+    
+    var fromName: String {
+        settlement.from.components(separatedBy: "@").first ?? "Unknown"
+    }
+    
+    var toName: String {
+        settlement.to.components(separatedBy: "@").first ?? "Unknown"
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(fromName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Image(systemName: "arrow.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    
+                    Text(toName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                
+                Text("Settlement payment")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            Text("$\(String(format: "%.2f", settlement.amount))")
+                .font(.headline)
+                .foregroundColor(.green)
+        }
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(12)
+    }
 }
+
+struct AddExpenseView: View {
+    @Environment(\.dismiss) var dismiss
+    let groupId: String
+    let members: [GroupMember]
+    let onExpenseAdded: () -> Void
+    
+    @State private var description = ""
+    @State private var amount = ""
+    @State private var selectedCategory: ExpenseCategory = .other
+    @State private var paidBy: String = ""
+    @State private var splitBetween: Set<String> = []
+    @State private var isAdding = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    var canAdd: Bool {
+        !description.isEmpty &&
+        !amount.isEmpty &&
+        Double(amount) != nil &&
+        !paidBy.isEmpty &&
+        !splitBetween.isEmpty
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Expense Details")) {
+                    TextField("Description", text: $description)
+                        .submitLabel(.done)
+                    
+                    TextField("Amount", text: $amount)
+                        .keyboardType(.decimalPad)
+                    
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(ExpenseCategory.allCases, id: \.self) { category in
+                            HStack {
+                                Image(systemName: category.icon)
+                                Text(category.rawValue)
+                            }
+                            .tag(category)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Paid By")) {
+                    Picker("Select member", selection: $paidBy) {
+                        Text("Select...").tag("")
+                        ForEach(members, id: \.email) { member in
+                            Text(member.email.components(separatedBy: "@").first ?? member.email)
+                                .tag(member.email)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Split Between")) {
+                    Button(action: toggleAllMembers) {
+                        HStack {
+                            Text(splitBetween.count == members.count ? "Deselect All" : "Select All")
+                            Spacer()
+                            Text("\(splitBetween.count)/\(members.count)")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    
+                    ForEach(members, id: \.email) { member in
+                        Button(action: { toggleMember(member.email) }) {
+                            HStack {
+                                Text(member.email.components(separatedBy: "@").first ?? member.email)
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                                
+                                if splitBetween.contains(member.email) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.purple)
+                                } else {
+                                    Image(systemName: "circle")
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if !splitBetween.isEmpty, let amountValue = Double(amount) {
+                    Section(header: Text("Split Details")) {
+                        let perPerson = amountValue / Double(splitBetween.count)
+                        Text("$\(String(format: "%.2f", perPerson)) per person")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .navigationTitle("Add Expense")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Add") {
+                        addExpense()
+                    }
+                    .disabled(!canAdd || isAdding)
+                }
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+    
+    private func toggleAllMembers() {
+        if splitBetween.count == members.count {
+            splitBetween.removeAll()
+        } else {
+            splitBetween = Set(members.map { $0.email })
+        }
+    }
+    
+    private func toggleMember(_ email: String) {
+        if splitBetween.contains(email) {
+            splitBetween.remove(email)
+        } else {
+            splitBetween.insert(email)
+        }
+    }
+    
+    private func addExpense() {
+        guard let amountValue = Double(amount) else { return }
+        
+        isAdding = true
+        
+        let expense = GroupExpense(
+            groupId: groupId,
+            description: description,
+            amount: amountValue,
+            paidBy: paidBy,
+            splitBetween: Array(splitBetween),
+            category: selectedCategory
+        )
+        
+        Task {
+            do {
+                try await FirestoreService.shared.addExpenseToGroup(expense: expense)
+                onExpenseAdded()
+                dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+                isAdding = false
+            }
+        }
+    }
+}
+
+struct AddMemberSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Binding var newMemberEmail: String
+    @Binding var isAddingMember: Bool
+    let onAdd: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Add Member")) {
+                    TextField("Email address", text: $newMemberEmail)
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                        .keyboardType(.emailAddress)
+                        .submitLabel(.done)
+                }
+                
+                Section {
+                    Button(action: {
+                        onAdd()
+                    }) {
+                        if isAddingMember {
+                            ProgressView()
+                        } else {
+                            Text("Add Member")
+                                .frame(maxWidth: .infinity)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .disabled(newMemberEmail.isEmpty || isAddingMember)
+                }
+            }
+            .navigationTitle("Invite Member")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        newMemberEmail = ""
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+import FirebaseAuth
+import FirebaseFirestore
 
 class FirestoreService {
     static let shared = FirestoreService()
@@ -2907,6 +4000,7 @@ class FirestoreService {
     
     private init() {}
     
+    // MARK: - Itineraries
     func saveItinerary(_ itinerary: Itinerary) async throws {
         let encoder = Firestore.Encoder()
         let data = try encoder.encode(itinerary)
@@ -2927,7 +4021,6 @@ class FirestoreService {
             try decoder.decode(Itinerary.self, from: doc.data())
         }
         
-        // Sort locally by createdAt (descending)
         return itineraries.sorted { $0.createdAt > $1.createdAt }
     }
     
@@ -2941,7 +4034,7 @@ class FirestoreService {
         try await db.collection("itineraries").document(itinerary.id).setData(data)
     }
     
-    // Progress tracking
+    // MARK: - Progress Tracking
     func updateItineraryProgress(itineraryId: String, dayId: String, completedActivities: [String]) async throws {
         try await db.collection("itineraries")
             .document(itineraryId)
@@ -2963,7 +4056,7 @@ class FirestoreService {
         return []
     }
     
-    // Group Plans
+    // MARK: - Group Plans
     func createGroupPlan(name: String, itinerary: Itinerary, memberEmails: [String]) async throws {
         guard let currentUserEmail = Auth.auth().currentUser?.email else {
             throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
@@ -2985,7 +4078,6 @@ class FirestoreService {
         let data = try encoder.encode(group)
         try await db.collection("groupPlans").document(group.id).setData(data)
         
-        // Update original itinerary to mark as shared
         try await updateItinerary(sharedItinerary)
     }
     
@@ -3006,28 +4098,102 @@ class FirestoreService {
     
     func addMemberToGroup(groupId: String, memberEmail: String) async throws {
         let docRef = db.collection("groupPlans").document(groupId)
+        let document = try await docRef.getDocument()
+        guard let data = document.data() else {
+            throw NSError(domain: "Firestore", code: 404)
+        }
         
-        // Get current group data
+        let decoder = Firestore.Decoder()
+        let group = try decoder.decode(GroupPlan.self, from: data)
+        
+        guard !group.members.contains(where: { $0.email == memberEmail }) else {
+            throw NSError(domain: "Firestore", code: 400)
+        }
+        
+        // Add member
+        try await docRef.updateData([
+            "members": FieldValue.arrayUnion([["email": memberEmail, "isOwner": false]]),
+            "memberEmails": FieldValue.arrayUnion([memberEmail])
+        ])
+        
+        // Send notification
+        guard let senderEmail = Auth.auth().currentUser?.email else { return }
+        let senderName = senderEmail.components(separatedBy: "@").first ?? "Someone"
+        
+        try await sendNotification(
+            toEmail: memberEmail,
+            title: "Added to Group",
+            body: "\(senderName) has added you to group \"\(group.name)\"",
+            data: ["groupId": groupId, "type": "group_invite"]
+        )
+    }
+    
+    func removeMemberFromGroup(groupId: String, memberEmail: String) async throws {
+        let docRef = db.collection("groupPlans").document(groupId)
         let document = try await docRef.getDocument()
         guard let data = document.data() else {
             throw NSError(domain: "Firestore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Group not found"])
         }
         
         let decoder = Firestore.Decoder()
-        var group = try decoder.decode(GroupPlan.self, from: data)
+        let group = try decoder.decode(GroupPlan.self, from: data)
         
-        // Check if member already exists
-        guard !group.members.contains(where: { $0.email == memberEmail }) else {
-            throw NSError(domain: "Firestore", code: 400, userInfo: [NSLocalizedDescriptionKey: "Member already exists in group"])
+        // Don't allow removing the owner
+        guard !group.members.contains(where: { $0.email == memberEmail && $0.isOwner }) else {
+            throw NSError(domain: "Firestore", code: 403, userInfo: [NSLocalizedDescriptionKey: "Cannot remove group owner"])
         }
         
-        // Add new member
-        let newMember = GroupMember(email: memberEmail, isOwner: false)
-        
-        // Update Firestore with array union
+        // Remove member
         try await docRef.updateData([
-            "members": FieldValue.arrayUnion([["email": memberEmail, "isOwner": false]]),
-            "memberEmails": FieldValue.arrayUnion([memberEmail])
+            "members": FieldValue.arrayRemove([["email": memberEmail, "isOwner": false]]),
+            "memberEmails": FieldValue.arrayRemove([memberEmail])
+        ])
+    }
+    private func sendNotification(toEmail: String, title: String, body: String, data: [String: String]) async throws {
+        // Get recipient's FCM token
+        let userSnapshot = try await db.collection("users")
+            .whereField("email", isEqualTo: toEmail)
+            .limit(to: 1)
+            .getDocuments()
+        
+        guard let userDoc = userSnapshot.documents.first,
+              let fcmToken = userDoc.data()["fcmToken"] as? String else {
+            print("No FCM token found for \(toEmail)")
+            return
+        }
+        
+        // Create notification document (Cloud Function will handle sending)
+        try await db.collection("notifications").addDocument(data: [
+            "token": fcmToken,
+            "title": title,
+            "body": body,
+            "data": data,
+            "timestamp": FieldValue.serverTimestamp()
+        ])
+    }
+
+    private func sendGroupInviteNotification(toEmail: String, groupName: String, inviterEmail: String) async throws {
+        // Get recipient's FCM token
+        let userSnapshot = try await db.collection("users")
+            .whereField("email", isEqualTo: toEmail)
+            .limit(to: 1)
+            .getDocuments()
+        
+        guard let userDoc = userSnapshot.documents.first,
+              let fcmToken = userDoc.data()["fcmToken"] as? String else {
+            return // User doesn't have app installed or token not available
+        }
+        
+        // Send notification via Cloud Function (see below)
+        try await db.collection("notifications").addDocument(data: [
+            "token": fcmToken,
+            "title": "New Group Invitation",
+            "body": "\(inviterEmail.components(separatedBy: "@").first ?? "Someone") invited you to \(groupName)",
+            "data": [
+                "type": "group_invite",
+                "groupId": groupName
+            ],
+            "timestamp": FieldValue.serverTimestamp()
         ])
     }
     
@@ -3044,4 +4210,143 @@ class FirestoreService {
     func deleteGroup(_ id: String) async throws {
         try await db.collection("groupPlans").document(id).delete()
     }
+    
+    // MARK: - Expenses + Settlements
+    func addExpenseToGroup(expense: GroupExpense) async throws {
+        let encoder = Firestore.Encoder()
+        let data = try encoder.encode(expense)
+        
+        try await db.collection("groupPlans")
+            .document(expense.groupId)
+            .collection("expenses")
+            .document(expense.id)
+            .setData(data)
+        
+        // 🔄 Recalculate settlements
+        let expenses = try await fetchGroupExpenses(groupId: expense.groupId)
+        let group = try await getGroupById(groupId: expense.groupId)
+        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
+        try await saveSettlements(groupId: expense.groupId, settlements: newSettlements)
+    }
+    
+    func fetchGroupExpenses(groupId: String) async throws -> [GroupExpense] {
+        let snapshot = try await db.collection("groupPlans")
+            .document(groupId)
+            .collection("expenses")
+            .getDocuments()
+        
+        let decoder = Firestore.Decoder()
+        return try snapshot.documents.compactMap { doc in
+            try? decoder.decode(GroupExpense.self, from: doc.data())
+        }.sorted { $0.date > $1.date }
+    }
+    
+    func deleteExpense(groupId: String, expenseId: String) async throws {
+        try await db.collection("groupPlans")
+            .document(groupId)
+            .collection("expenses")
+            .document(expenseId)
+            .delete()
+        
+        // 🔄 Recalculate settlements
+        let expenses = try await fetchGroupExpenses(groupId: groupId)
+        let group = try await getGroupById(groupId: groupId)
+        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
+        try await saveSettlements(groupId: groupId, settlements: newSettlements)
+    }
+    func updateExpense(groupId: String, expenseId: String, description: String, amount: Double, category: ExpenseCategory) async throws {
+        try await db.collection("groupPlans")
+            .document(groupId)
+            .collection("expenses")
+            .document(expenseId)
+            .updateData([
+                "description": description,
+                "amount": amount,
+                "category": category.rawValue
+            ])
+        
+        // Recalculate settlements
+        let expenses = try await fetchGroupExpenses(groupId: groupId)
+        let group = try await getGroupById(groupId: groupId)
+        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
+        try await saveSettlements(groupId: groupId, settlements: newSettlements)
+    }
+    
+    // MARK: - Settlements
+    func saveSettlements(groupId: String, settlements: [Settlement]) async throws {
+        let encoder = Firestore.Encoder()
+        let data = try settlements.map { try encoder.encode($0) }
+        
+        try await db.collection("groupPlans")
+            .document(groupId)
+            .collection("settlements")
+            .document("current")
+            .setData(["items": data])
+    }
+
+    func fetchSettlements(groupId: String) async throws -> [Settlement] {
+        let snapshot = try await db.collection("groupPlans")
+            .document(groupId)
+            .collection("settlements")
+            .document("current")
+            .getDocument()
+        
+        guard let data = snapshot.data(),
+              let items = data["items"] as? [[String: Any]] else {
+            return []
+        }
+        
+        let decoder = Firestore.Decoder()
+        return try items.compactMap { try decoder.decode(Settlement.self, from: $0) }
+    }
+    
+    func calculateSettlements(expenses: [GroupExpense], members: [GroupMember]) -> [Settlement] {
+        var balanceMap: [String: Double] = [:]
+        
+        for member in members {
+            balanceMap[member.email] = 0
+        }
+        
+        for expense in expenses {
+            let shareAmount = expense.amount / Double(expense.splitBetween.count)
+            balanceMap[expense.paidBy, default: 0] += expense.amount
+            for person in expense.splitBetween {
+                balanceMap[person, default: 0] -= shareAmount
+            }
+        }
+        
+        var creditors = balanceMap.filter { $0.value > 0.01 }
+            .map { (person: $0.key, amount: $0.value) }
+        creditors.sort {
+            $0.amount == $1.amount ? $0.person < $1.person : $0.amount > $1.amount
+        }
+        
+        var debtors = balanceMap.filter { $0.value < -0.01 }
+            .map { (person: $0.key, amount: abs($0.value)) }
+        debtors.sort {
+            $0.amount == $1.amount ? $0.person < $1.person : $0.amount > $1.amount
+        }
+        
+        var settlements: [Settlement] = []
+        var i = 0, j = 0
+        
+        while i < creditors.count && j < debtors.count {
+            let amountToSettle = min(creditors[i].amount, debtors[j].amount)
+            
+            settlements.append(Settlement(
+                from: debtors[j].person,
+                to: creditors[i].person,
+                amount: amountToSettle
+            ))
+            
+            creditors[i].amount -= amountToSettle
+            debtors[j].amount -= amountToSettle
+            
+            if creditors[i].amount < 0.01 { i += 1 }
+            if debtors[j].amount < 0.01 { j += 1 }
+        }
+        
+        return settlements
+    }
 }
+

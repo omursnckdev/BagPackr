@@ -1,0 +1,1318 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "(You)" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Sen)"
+          }
+        }
+      }
+    },
+    "%@ - %lld days" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ - %2$lld gün"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld days" : {
+
+    },
+    "%lld Days" : {
+
+    },
+    "%lld members" : {
+
+    },
+    "%lld total" : {
+
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "%lld/%lld done" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld tamamlandı"
+          }
+        }
+      }
+    },
+    "•" : {
+
+    },
+    "• Owner" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Sahibi"
+          }
+        }
+      }
+    },
+    "• Your account\n• All itineraries\n• Group memberships\n• Expense records" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• Hesabınız\n• Tüm gezi planlarınız\n• Grup üyelikleriniz\n• Harcama kayıtlarınız"
+          }
+        }
+      }
+    },
+    "+%lld" : {
+
+    },
+    "$%@" : {
+
+    },
+    "$%@ per person" : {
+
+    },
+    "$%lld" : {
+
+    },
+    "$50" : {
+
+    },
+    "$1000" : {
+
+    },
+    "About" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hakkında"
+          }
+        }
+      }
+    },
+    "Add" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekle"
+          }
+        }
+      }
+    },
+    "Add custom interest" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel ilgi alanı ekle"
+          }
+        }
+      }
+    },
+    "Add Expense" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcama Ekle"
+          }
+        }
+      }
+    },
+    "Add Member" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üye Ekle"
+          }
+        }
+      }
+    },
+    "Add your first expense to start tracking" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takibi başlatmak için ilk harcamanızı ekleyin"
+          }
+        }
+      }
+    },
+    "Already have an account? Log In" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaten bir hesabınız var mı? Giriş yapın"
+          }
+        }
+      }
+    },
+    "Amount" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutar"
+          }
+        }
+      }
+    },
+    "Are you sure you want to delete this itinerary? This action cannot be undone." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu gezi planını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+          }
+        }
+      }
+    },
+    "Are you sure you want to sign out?" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oturumu kapatmak istediğinizden emin misiniz?"
+          }
+        }
+      }
+    },
+    "BagPckr" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BagPckr"
+          }
+        }
+      }
+    },
+    "Balances" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bakiyeler"
+          }
+        }
+      }
+    },
+    "Budget" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bütçe"
+          }
+        }
+      }
+    },
+    "Budget per Day" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Günlük Bütçe"
+          }
+        }
+      }
+    },
+    "Budget range" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bütçe aralığı"
+          }
+        }
+      }
+    },
+    "Budget: $%lld" : {
+
+    },
+    "By Category" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kategoriye Göre"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İptal"
+          }
+        }
+      }
+    },
+    "Category" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kategori"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapat"
+          }
+        }
+      }
+    },
+    "Confirm Your Identity" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kimliğinizi Doğrulayın"
+          }
+        }
+      }
+    },
+    "Confirm: %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onayla: %@"
+          }
+        }
+      }
+    },
+    "Create" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oluştur"
+          }
+        }
+      }
+    },
+    "Create Account" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesap Oluştur"
+          }
+        }
+      }
+    },
+    "Create Group" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup Oluştur"
+          }
+        }
+      }
+    },
+    "Create Group Plan" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup Planı Oluştur"
+          }
+        }
+      }
+    },
+    "Create Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı Oluştur"
+          }
+        }
+      }
+    },
+    "Create or join a group to plan trips together!" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seyahatleri birlikte planlamak için bir grup oluşturun veya katılın!"
+          }
+        }
+      }
+    },
+    "Create your account" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesabınızı oluşturun"
+          }
+        }
+      }
+    },
+    "Create your first travel plan and start exploring!" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlk seyahat planınızı oluşturun ve keşfetmeye başlayın!"
+          }
+        }
+      }
+    },
+    "Creating your journey..." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seyahatiniz hazırlanıyor..."
+          }
+        }
+      }
+    },
+    "Custom Interests" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özel İlgi Alanları"
+          }
+        }
+      }
+    },
+    "Day %lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gün %lld"
+          }
+        }
+      }
+    },
+    "days" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gün"
+          }
+        }
+      }
+    },
+    "Delete" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sil"
+          }
+        }
+      }
+    },
+    "Delete Account" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesabı Sil"
+          }
+        }
+      }
+    },
+    "Delete Account Permanently" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesabı Kalıcı Olarak Sil"
+          }
+        }
+      }
+    },
+    "Delete Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planını Sil"
+          }
+        }
+      }
+    },
+    "Delete My Account" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesabımı Sil"
+          }
+        }
+      }
+    },
+    "Deleting account..." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesap siliniyor..."
+          }
+        }
+      }
+    },
+    "Description" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açıklama"
+          }
+        }
+      }
+    },
+    "Deselect All" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tümünü Kaldır"
+          }
+        }
+      }
+    },
+    "Don't have an account? Sign Up" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesabınız yok mu? Kayıt olun"
+          }
+        }
+      }
+    },
+    "Duration" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Süre"
+          }
+        }
+      }
+    },
+    "e.g., Temple, Sushi, Kebab" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ör. Tapınak, Suşi, Kebap"
+          }
+        }
+      }
+    },
+    "Edit Expense" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcamayı Düzenle"
+          }
+        }
+      }
+    },
+    "Edit Interests" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlgi Alanlarını Düzenle"
+          }
+        }
+      }
+    },
+    "Edit Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planını Düzenle"
+          }
+        }
+      }
+    },
+    "Email" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-posta"
+          }
+        }
+      }
+    },
+    "Email address" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-posta adresi"
+          }
+        }
+      }
+    },
+    "Enter group name" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup adını girin"
+          }
+        }
+      }
+    },
+    "Error" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hata"
+          }
+        }
+      }
+    },
+    "Expense Details" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcama Detayları"
+          }
+        }
+      }
+    },
+    "Expenses" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcamalar"
+          }
+        }
+      }
+    },
+    "Generate Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı Oluştur"
+          }
+        }
+      }
+    },
+    "gets back $%@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "$%@ geri alır"
+          }
+        }
+      }
+    },
+    "Group Details" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup Detayları"
+          }
+        }
+      }
+    },
+    "Group Name" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup Adı"
+          }
+        }
+      }
+    },
+    "Group Plans" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grup Planları"
+          }
+        }
+      }
+    },
+    "Groups" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruplar"
+          }
+        }
+      }
+    },
+    "Hide" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gizle"
+          }
+        }
+      }
+    },
+    "Invite Member" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üye Davet Et"
+          }
+        }
+      }
+    },
+    "Invite Members" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üyeleri Davet Et"
+          }
+        }
+      }
+    },
+    "Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı"
+          }
+        }
+      }
+    },
+    "Itinerary Details" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı Detayları"
+          }
+        }
+      }
+    },
+    "Join BagPckr today" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BagPckr’a bugün katılın"
+          }
+        }
+      }
+    },
+    "Location" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum"
+          }
+        }
+      }
+    },
+    "Location cannot be changed" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum değiştirilemez"
+          }
+        }
+      }
+    },
+    "Log In" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş Yap"
+          }
+        }
+      }
+    },
+    "Map" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harita"
+          }
+        }
+      }
+    },
+    "Member Balances" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üye Bakiyeleri"
+          }
+        }
+      }
+    },
+    "Members" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üyeler"
+          }
+        }
+      }
+    },
+    "My Itineraries" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planlarım"
+          }
+        }
+      }
+    },
+    "My Plans" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planlarım"
+          }
+        }
+      }
+    },
+    "Navigate" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yol Tarifi Al"
+          }
+        }
+      }
+    },
+    "No expenses to calculate" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesaplanacak harcama yok"
+          }
+        }
+      }
+    },
+    "No expenses yet" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz harcama eklenmemiş"
+          }
+        }
+      }
+    },
+    "No Group Plans" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz Grup Planı Yok"
+          }
+        }
+      }
+    },
+    "No itineraries yet" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz gezi planınız yok"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
+    "Oops! That email or password doesn’t match our records." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-posta veya şifre kayıtlarımızla eşleşmiyor."
+          }
+        }
+      }
+    },
+    "owes $%@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "$%@ borçlu"
+          }
+        }
+      }
+    },
+    "Paid By" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödeyen"
+          }
+        }
+      }
+    },
+    "Paid by: %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ödeyen: %@"
+          }
+        }
+      }
+    },
+    "Password" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şifre"
+          }
+        }
+      }
+    },
+    "Plan your perfect journey" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mükemmel yolculuğunuzu planlayın"
+          }
+        }
+      }
+    },
+    "Profile" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profil"
+          }
+        }
+      }
+    },
+    "Regenerate Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planını Yeniden Oluştur"
+          }
+        }
+      }
+    },
+    "Regenerating..." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden oluşturuluyor..."
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaldır"
+          }
+        }
+      }
+    },
+    "Remove %@ from the group?" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ gruptan kaldırılsın mı?"
+          }
+        }
+      }
+    },
+    "Remove Member" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üyeyi Kaldır"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaydet"
+          }
+        }
+      }
+    },
+    "Search location" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum ara"
+          }
+        }
+      }
+    },
+    "Select All" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tümünü Seç"
+          }
+        }
+      }
+    },
+    "Select Interests" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İlgi Alanlarını Seç"
+          }
+        }
+      }
+    },
+    "Select Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı Seç"
+          }
+        }
+      }
+    },
+    "Select Location" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum Seç"
+          }
+        }
+      }
+    },
+    "Select member" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üye Seç"
+          }
+        }
+      }
+    },
+    "Select..." : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seç..."
+          }
+        }
+      }
+    },
+    "Settle Up" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesaplaş"
+          }
+        }
+      }
+    },
+    "Settled" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapandı"
+          }
+        }
+      }
+    },
+    "Settlement payment" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hesaplaşma ödemesi"
+          }
+        }
+      }
+    },
+    "Share with Group" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grupla Paylaş"
+          }
+        }
+      }
+    },
+    "Sign In" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş Yap"
+          }
+        }
+      }
+    },
+    "Sign Out" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çıkış Yap"
+          }
+        }
+      }
+    },
+    "Sign Up" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kayıt Ol"
+          }
+        }
+      }
+    },
+    "Spent: $%lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Harcanan: $%lld"
+          }
+        }
+      }
+    },
+    "Split Between" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaştırılan Üyeler"
+          }
+        }
+      }
+    },
+    "Split between: %lld members" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld üye arasında paylaştırıldı"
+          }
+        }
+      }
+    },
+    "Split Details" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paylaşım Detayları"
+          }
+        }
+      }
+    },
+    "Tap to change" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Değiştirmek için dokunun"
+          }
+        }
+      }
+    },
+    "This action cannot be undone" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu işlem geri alınamaz"
+          }
+        }
+      }
+    },
+    "This will permanently delete:" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalıcı olarak silinecek:"
+          }
+        }
+      }
+    },
+    "Total Expenses" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam Harcama"
+          }
+        }
+      }
+    },
+    "Total: $%lld" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam: $%lld"
+          }
+        }
+      }
+    },
+    "transactions" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "işlem"
+          }
+        }
+      }
+    },
+    "Travel Enthusiast" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seyahat Tutkunu"
+          }
+        }
+      }
+    },
+    "Trip: %@" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi: %@"
+          }
+        }
+      }
+    },
+    "View" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görüntüle"
+          }
+        }
+      }
+    },
+    "Welcome back!" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tekrar hoş geldiniz!"
+          }
+        }
+      }
+    },
+    "Your Itinerary" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sizin Gezi Planınız"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

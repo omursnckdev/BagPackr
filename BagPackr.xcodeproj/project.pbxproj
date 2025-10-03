@@ -14,12 +14,17 @@
 		671A0C342E8D0AEE00A85EA5 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C332E8D0AEE00A85EA5 /* GoogleMaps */; };
 		671A0C372E8D0D2300A85EA5 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C362E8D0D2300A85EA5 /* GooglePlaces */; };
 		671A0C392E8D0D2300A85EA5 /* GooglePlacesSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C382E8D0D2300A85EA5 /* GooglePlacesSwift */; };
+		67596D382E90098900703314 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 67596D372E90098900703314 /* Localizable.xcstrings */; };
 		677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 677C9A312E8D3CCE00F9958C /* GoogleMobileAds */; };
+		677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7072E8E667200DE95A9 /* FirebaseFunctions */; };
+		677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */; };
+		67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 67A0170A2E8FA783000E573B /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BagPackr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		671A0C282E8CFB4F00A85EA5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		67596D372E90098900703314 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -50,7 +55,10 @@
 			files = (
 				671A0C342E8D0AEE00A85EA5 /* GoogleMaps in Frameworks */,
 				671A0C312E8D0AC300A85EA5 /* GoogleGenerativeAI in Frameworks */,
+				67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */,
+				677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */,
 				671A0C2C2E8D08C400A85EA5 /* FirebaseAuth in Frameworks */,
+				677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */,
 				671A0C372E8D0D2300A85EA5 /* GooglePlaces in Frameworks */,
 				671A0C2E2E8D08C400A85EA5 /* FirebaseFirestore in Frameworks */,
 				671A0C392E8D0D2300A85EA5 /* GooglePlacesSwift in Frameworks */,
@@ -64,6 +72,7 @@
 		671A0C112E8CFB2E00A85EA5 = {
 			isa = PBXGroup;
 			children = (
+				67596D372E90098900703314 /* Localizable.xcstrings */,
 				671A0C282E8CFB4F00A85EA5 /* GoogleService-Info.plist */,
 				671A0C1C2E8CFB2E00A85EA5 /* BagPackr */,
 				671A0C1B2E8CFB2E00A85EA5 /* Products */,
@@ -105,6 +114,9 @@
 				671A0C362E8D0D2300A85EA5 /* GooglePlaces */,
 				671A0C382E8D0D2300A85EA5 /* GooglePlacesSwift */,
 				677C9A312E8D3CCE00F9958C /* GoogleMobileAds */,
+				677FC7072E8E667200DE95A9 /* FirebaseFunctions */,
+				677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */,
+				67A0170A2E8FA783000E573B /* FirebaseMessaging */,
 			);
 			productName = BagPackr;
 			productReference = 671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */;
@@ -131,6 +143,8 @@
 			knownRegions = (
 				en,
 				Base,
+				tr,
+				te,
 			);
 			mainGroup = 671A0C112E8CFB2E00A85EA5;
 			minimizedProjectReferenceProxies = 1;
@@ -157,6 +171,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				671A0C292E8CFB5000A85EA5 /* GoogleService-Info.plist in Resources */,
+				67596D382E90098900703314 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +248,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -290,6 +306,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -299,6 +316,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = BagPackr/BagPackr.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -307,17 +325,19 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BagPackr/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BagPckr uses your location to show nearby attractions, optimize your itineraries, and suggest routes during your trip.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -340,6 +360,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = BagPackr/BagPackr.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -348,17 +369,19 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BagPackr/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.travel";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "BagPckr uses your location to show nearby attractions, optimize your itineraries, and suggest routes during your trip.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -477,6 +500,18 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 677C9A302E8D3CCE00F9958C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		677FC7072E8E667200DE95A9 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseFunctions;
+		};
+		677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = "FirebaseFunctionsCombine-Community";
+		};
+		67A0170A2E8FA783000E573B /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
