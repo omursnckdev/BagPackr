@@ -25,61 +25,133 @@ class GeminiService {
         model = GenerativeModel(name: "gemini-2.5-flash-lite", apiKey: "AIzaSyAoUnnvwIeBbxYo0RncGtteOJCaViLwJRI")
     }
     
+    private var isTurkish: Bool {
+        Locale.current.language.languageCode?.identifier == "tr"
+    }
+    
+    private var currencySymbol: String {
+        isTurkish ? "₺" : "$"
+    }
+    
     func generateItinerary(location: LocationData, duration: Int, interests: [String], budgetPerDay: Double) async throws -> Itinerary {
         guard let userId = Auth.auth().currentUser?.uid else {
             throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
         
-        let prompt = """
-        Create a \(duration)-day itinerary for \(location.name), \(location.latitude), \(location.longitude)
+        let prompt: String
         
-        Interests: \(interests.joined(separator: ", "))
-        Daily budget: $\(Int(budgetPerDay))
-        
-        Rules:
-        - 4-5 activities per day with variety
-        - Real place names in \(location.name)
-        - Include time (e.g., "09:00 AM - 11:00 AM"), distance (km), and cost ($)
-        - Daily costs should total ~$\(Int(budgetPerDay))
-        - Don't repeat similar activities
-        
-        Return ONLY this JSON (no markdown):
-        {
-          "dailyPlans": [
+        if isTurkish {
+            prompt = """
+            \(location.name) için \(duration) günlük bir gezi planı oluştur. Konum: \(location.latitude), \(location.longitude)
+            
+            İlgi alanları: \(interests.joined(separator: ", "))
+            Günlük bütçe: ₺\(Int(budgetPerDay))
+            
+            Kurallar:
+            - Günde 4-5 çeşitli aktivite
+            - \(location.name) şehrindeki gerçek yer isimleri kullan
+            - Her aktivite için saat (örn: "09:00 - 11:00"), mesafe (km) ve maliyet (₺) bilgisi ekle
+            - Günlük toplam maliyet yaklaşık ₺\(Int(budgetPerDay)) olmalı
+            - Benzer aktiviteleri tekrarlama
+            - Tüm açıklamalar Türkçe olmalı
+            
+            SADECE aşağıdaki JSON formatında cevap ver, başka hiçbir şey yazma:
             {
-              "day": 1,
-              "activities": [
+              "dailyPlans": [
                 {
-                  "name": "Place Name",
-                  "type": "Beach/Restaurant/Museum/etc",
-                  "description": "Brief description",
-                  "time": "09:00 AM - 11:00 AM",
-                  "distance": 2.5,
-                  "cost": 25.0
+                  "day": 1,
+                  "activities": [
+                    {
+                      "name": "Yer İsmi",
+                      "type": "Kategori",
+                      "description": "Kısa açıklama",
+                      "time": "09:00 - 11:00",
+                      "distance": 2.5,
+                      "cost": 250.0
+                    }
+                  ]
                 }
               ]
             }
-          ]
+            """
+        } else {
+            prompt = """
+            Create a \(duration)-day itinerary for \(location.name), \(location.latitude), \(location.longitude)
+            
+            Interests: \(interests.joined(separator: ", "))
+            Daily budget: $\(Int(budgetPerDay))
+            
+            Rules:
+            - 4-5 activities per day with variety
+            - Use real place names in \(location.name)
+            - Include time (e.g., "09:00 - 11:00"), distance (km), and cost ($)
+            - Daily costs should total ~$\(Int(budgetPerDay))
+            - Don't repeat similar activities
+            
+            Return ONLY the following JSON format, nothing else:
+            {
+              "dailyPlans": [
+                {
+                  "day": 1,
+                  "activities": [
+                    {
+                      "name": "Place Name",
+                      "type": "Category",
+                      "description": "Brief description",
+                      "time": "09:00 - 11:00",
+                      "distance": 2.5,
+                      "cost": 25.0
+                    }
+                  ]
+                }
+              ]
+            }
+            """
         }
-        """
         
         let response = try await model.generateContent(prompt)
         
         guard let text = response.text else {
-            throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: "No response from Gemini"])
+            let errorMsg = isTurkish ? "Gemini'den yanıt alınamadı" : "No response from Gemini"
+            throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
         
-        let cleanedText = text
+        // Debug: Print the raw response
+        print("Raw Gemini Response:")
+        print(text)
+        print("---")
+        
+        // Clean the response more aggressively
+        var cleanedText = text
             .replacingOccurrences(of: "```json", with: "")
             .replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         
+        // Find the first { and last } to extract just the JSON
+        if let startIndex = cleanedText.firstIndex(of: "{"),
+           let endIndex = cleanedText.lastIndex(of: "}") {
+            cleanedText = String(cleanedText[startIndex...endIndex])
+        }
+        
+        print("Cleaned JSON:")
+        print(cleanedText)
+        print("---")
+        
         guard let data = cleanedText.data(using: .utf8) else {
-            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to convert response"])
+            let errorMsg = isTurkish ? "Yanıt çevrilemedi" : "Failed to convert response"
+            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
         
         let decoder = JSONDecoder()
-        let geminiResponse = try decoder.decode(GeminiResponse.self, from: data)
+        let geminiResponse: GeminiResponse
+        
+        do {
+            geminiResponse = try decoder.decode(GeminiResponse.self, from: data)
+        } catch {
+            print("Decoding Error: \(error)")
+            let errorMsg = isTurkish ? "JSON okunamadı: \(error.localizedDescription)" : "Failed to parse JSON: \(error.localizedDescription)"
+            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
+        }
         
         let dailyPlans = geminiResponse.dailyPlans.map { plan in
             DailyPlan(

@@ -368,6 +368,36 @@ struct CreateItineraryView: View {
     @ObservedObject var itineraryListViewModel: ItineraryListViewModel
     @State private var showMapPicker = false
     
+    // Add these computed properties
+    private var minBudget: Double {
+        Locale.current.language.languageCode?.identifier == "tr" ? 1000 : 50
+    }
+    
+    private var maxBudget: Double {
+        Locale.current.language.languageCode?.identifier == "tr" ? 30000 : 1000
+    }
+    
+    private var budgetStep: Double {
+        Locale.current.language.languageCode?.identifier == "tr" ? 100 : 10
+    }
+    
+    private var minBudgetText: String {
+        Locale.current.language.languageCode?.identifier == "tr" ? "₺1000" : "$50"
+    }
+    
+    private var maxBudgetText: String {
+        Locale.current.language.languageCode?.identifier == "tr" ? "₺30000" : "$1000"
+    }
+    
+    // Add these computed properties for button styling
+    private var buttonGradientColors: [Color] {
+        viewModel.canGenerate ? [Color.blue, Color.purple] : [Color.gray, Color.gray]
+    }
+    
+    private var buttonShadowColor: Color {
+        viewModel.canGenerate ? Color.blue.opacity(0.4) : Color.clear
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -380,212 +410,12 @@ struct CreateItineraryView: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
-                        ModernCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Label("Location", systemImage: "mappin.circle.fill")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                Button(action: { showMapPicker = true }) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(viewModel.selectedLocation?.name ?? "Select Location")
-                                                .font(.title3)
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.primary)
-                                            
-                                            if viewModel.selectedLocation != nil {
-                                                Text("Tap to change")
-                                                    .font(.caption)
-                                                    .foregroundColor(.gray)
-         
-                                            }
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.blue)
-                                    }
-                                    .padding()
-                                    .background(Color.blue.opacity(0.1))
-                                    .cornerRadius(12)
-                                }
-                            }
-                        }
-                        
-                        ModernCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Label("Duration", systemImage: "calendar")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                HStack {
-                                    Text("\(viewModel.duration)")
-                                        .font(.system(size: 48, weight: .bold))
-                                        .foregroundColor(.blue)
-                                    
-                                    Text("days")
-                                        .font(.title3)
-                                        .foregroundColor(.gray)
-                                    
-                                    Spacer()
-                                    
-                                    VStack(spacing: 8) {
-                                        Button(action: { viewModel.duration = min(14, viewModel.duration + 1) }) {
-                                            Image(systemName: "plus.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(.blue)
-                                        }
-                                        
-                                        Button(action: { viewModel.duration = max(1, viewModel.duration - 1) }) {
-                                            Image(systemName: "minus.circle.fill")
-                                                .font(.title2)
-                                                .foregroundColor(.blue)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Budget Estimation
-                        ModernCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Label("Budget per Day", systemImage: "dollarsign.circle.fill")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                HStack {
-                                    Text("$\(Int(viewModel.budgetPerDay))")
-                                        .font(.system(size: 36, weight: .bold))
-                                        .foregroundColor(.green)
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment: .trailing) {
-                                        Text("Total: $\(Int(viewModel.budgetPerDay * Double(viewModel.duration)))")
-                                            .font(.headline)
-                                            .foregroundColor(.primary)
-                                        
-                                        Text("Budget range")
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                                
-                                Slider(value: $viewModel.budgetPerDay, in: 50...1000, step: 10)
-                                    .accentColor(.green)
-                                
-                                HStack {
-                                    Text("$50")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Text("Budget")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Text("$1000")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                        }
-                        
-                        ModernCard {
-                            VStack(alignment: .leading, spacing: 15) {
-                                Label("Select Interests", systemImage: "star.fill")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                FlowLayout(spacing: 10) {
-                                    ForEach(viewModel.builtInInterests, id: \.self) { interest in
-                                        EnhancedInterestChip(
-                                            title: interest,
-                                            isSelected: viewModel.selectedInterests.contains(interest),
-                                            action: { withAnimation(.spring()) { viewModel.toggleInterest(interest) } }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        
-                        ModernCard {
-                            VStack(alignment: .leading, spacing: 15) {
-                                Label("Custom Interests", systemImage: "plus.square.fill")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                
-                                HStack {
-                                    TextField("e.g., Temple, Sushi, Kebab", text: $viewModel.customInterestInput)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.1))
-                                        .submitLabel(.done)
-                                        .cornerRadius(10)
-                                        .onSubmit {
-                                              withAnimation(.spring()) {
-                                                  viewModel.addCustomInterest()
-                                              }
-                                          }
-                                    
-                                    Button(action: { withAnimation(.spring()) { viewModel.addCustomInterest() } }) {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                                
-                                if !viewModel.customInterests.isEmpty {
-                                    FlowLayout(spacing: 10) {
-                                        ForEach(viewModel.customInterests, id: \.self) { interest in
-                                            EnhancedInterestChip(
-                                                title: interest,
-                                                isSelected: viewModel.selectedInterests.contains(interest),
-                                                isCustom: true,
-                                                action: { withAnimation(.spring()) { viewModel.toggleInterest(interest) } },
-                                                onRemove: { withAnimation(.spring()) { viewModel.removeCustomInterest(interest) } }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Button(action: {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                  AdManager.shared.showAd()
-                              }
-                            viewModel.generateItinerary(itineraryListViewModel: itineraryListViewModel)
-                            
-                          
-                        }) {
-                            HStack {
-                                if viewModel.isGenerating {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    Text("Creating your journey...")
-                                        .fontWeight(.semibold)
-                                } else {
-                                    Image(systemName: "sparkles")
-                                    Text("Generate Itinerary")
-                                        .fontWeight(.semibold)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
-                                LinearGradient(
-                                    colors: viewModel.canGenerate ? [Color.blue, Color.purple] : [Color.gray, Color.gray],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .foregroundColor(.white)
-                            .cornerRadius(15)
-                            .shadow(color: viewModel.canGenerate ? Color.blue.opacity(0.4) : Color.clear, radius: 10, x: 0, y: 5)
-                        }
-                        .disabled(!viewModel.canGenerate || viewModel.isGenerating)
-                        .padding(.horizontal)
+                        locationCard
+                        durationCard
+                        budgetCard
+                        interestsCard
+                        customInterestsCard
+                        generateButton
                     }
                     .padding()
                 }
@@ -607,7 +437,243 @@ struct CreateItineraryView: View {
             }
         }
     }
+    
+    // MARK: - View Components
+    
+    private var locationCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Location", systemImage: "mappin.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                Button(action: { showMapPicker = true }) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(viewModel.selectedLocation?.name ?? String(localized: "Select Location"))
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            
+                            if viewModel.selectedLocation != nil {
+                                Text("Tap to change")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.blue)
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                }
+            }
+        }
+    }
+    
+    private var durationCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Duration", systemImage: "calendar")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                HStack {
+                    Text("\(viewModel.duration)")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.blue)
+                    
+                    Text("days")
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    VStack(spacing: 8) {
+                        Button(action: { viewModel.duration = min(14, viewModel.duration + 1) }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                        }
+                        
+                        Button(action: { viewModel.duration = max(1, viewModel.duration - 1) }) {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private var currencySymbol: String {
+        Locale.current.language.languageCode?.identifier == "tr" ? "₺" : "$"
+    }
+
+    private var budgetCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Budget per Day", systemImage: "dollarsign.circle.fill")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                HStack {
+                    Text("\(currencySymbol)\(Int(viewModel.budgetPerDay))")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.green)
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing) {
+                        let totalBudget = Int(viewModel.budgetPerDay * Double(viewModel.duration))
+                        Text(String(localized: "Total: \(currencySymbol)\(totalBudget)"))
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Text("Budget range")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Slider(
+                    value: $viewModel.budgetPerDay,
+                    in: minBudget...maxBudget,
+                    step: budgetStep
+                )
+                .accentColor(.green)
+                
+                HStack {
+                    Text(minBudgetText)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Text("Budget")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Text(maxBudgetText)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+    }
+    
+    private var interestsCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 15) {
+                Label("Select Interests", systemImage: "star.fill")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                FlowLayout(spacing: 10) {
+                    ForEach(viewModel.builtInInterests, id: \.self) { interest in
+                        EnhancedInterestChip(
+                            title: interest,
+                            isSelected: viewModel.selectedInterests.contains(interest),
+                            action: { withAnimation(.spring()) { viewModel.toggleInterest(interest) } }
+                        )
+                    }
+                }
+            }
+        }
+    }
+    
+    private var customInterestsCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 15) {
+                Label("Custom Interests", systemImage: "plus.square.fill")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                HStack {
+                    TextField("e.g., Temple, Sushi, Kebab", text: $viewModel.customInterestInput)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .submitLabel(.done)
+                        .cornerRadius(10)
+                        .onSubmit {
+                            withAnimation(.spring()) {
+                                viewModel.addCustomInterest()
+                            }
+                        }
+                    
+                    Button(action: { withAnimation(.spring()) { viewModel.addCustomInterest() } }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                if !viewModel.customInterests.isEmpty {
+                    FlowLayout(spacing: 10) {
+                        ForEach(viewModel.customInterests, id: \.self) { interest in
+                            EnhancedInterestChip(
+                                title: interest,
+                                isSelected: viewModel.selectedInterests.contains(interest),
+                                isCustom: true,
+                                action: { withAnimation(.spring()) { viewModel.toggleInterest(interest) } },
+                                onRemove: { withAnimation(.spring()) { viewModel.removeCustomInterest(interest) } }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private var generateButton: some View {
+        Button(action: handleGenerateButtonTap) {
+            buttonContent
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: buttonGradientColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundColor(.white)
+                .cornerRadius(15)
+                .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
+        }
+        .disabled(!viewModel.canGenerate || viewModel.isGenerating)
+        .padding(.horizontal)
+    }
+    
+    @ViewBuilder
+    private var buttonContent: some View {
+        HStack {
+            if viewModel.isGenerating {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                Text("Creating your journey...")
+                    .fontWeight(.semibold)
+            } else {
+                Image(systemName: "sparkles")
+                Text("Generate Itinerary")
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func handleGenerateButtonTap() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            AdManager.shared.showAd()
+        }
+        viewModel.generateItinerary(itineraryListViewModel: itineraryListViewModel)
+    }
 }
+
 extension View {
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
@@ -642,7 +708,7 @@ struct EnhancedInterestChip: View {
     
     var body: some View {
         HStack(spacing: 6) {
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.subheadline)
                 .fontWeight(.medium)
             
@@ -657,7 +723,10 @@ struct EnhancedInterestChip: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(isSelected ? LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing) : LinearGradient(colors: [.gray.opacity(0.2), .gray.opacity(0.2)], startPoint: .leading, endPoint: .trailing))
+                .fill(isSelected ?
+                    LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing) :
+                    LinearGradient(colors: [.gray.opacity(0.2), .gray.opacity(0.2)], startPoint: .leading, endPoint: .trailing)
+                )
         )
         .foregroundColor(isSelected ? .white : .primary)
         .shadow(color: isSelected ? Color.blue.opacity(0.3) : Color.clear, radius: 5, x: 0, y: 3)
@@ -666,7 +735,6 @@ struct EnhancedInterestChip: View {
         .animation(.spring(response: 0.3), value: isSelected)
     }
 }
-
 // MARK: - Map Picker View
 struct MapPickerView: View {
     @Environment(\.dismiss) var dismiss
@@ -1041,16 +1109,18 @@ struct ItineraryResultView: View {
                             }
                             
                             HStack {
-                                Label("\(itinerary.duration) Days", systemImage: "calendar")
+                                let daysText = Locale.current.language.languageCode?.identifier == "tr" ? "Gün" : "Days"
+                                Label("\(itinerary.duration) \(daysText)", systemImage: "calendar")
                                 Spacer()
-                                Label("$\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))", systemImage: "dollarsign.circle.fill")
+                                let currencySymbol = Locale.current.language.languageCode?.identifier == "tr" ? "₺" : "$"
+                                Label("\(currencySymbol)\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))", systemImage: "dollarsign.circle.fill")
                             }
                             .font(.subheadline)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack {
                                     ForEach(itinerary.interests, id: \.self) { interest in
-                                        Text(interest)
+                                        Text(LocalizedStringKey(interest))
                                             .font(.caption)
                                             .padding(.horizontal, 12)
                                             .padding(.vertical, 6)
@@ -1128,7 +1198,7 @@ struct ItineraryResultView: View {
             text += "\n"
         }
         
-        text += "\nCreated with Travel Itinerary App ✈️"
+        text += "\nCreated with BagPckr ✈️"
         return text
     }
 }
@@ -1683,10 +1753,9 @@ struct ItineraryListView: View {
         }
     }
 }
-
 struct EnhancedItineraryListRow: View {
     let itinerary: Itinerary
-    
+
     var body: some View {
         HStack(spacing: 15) {
             ZStack {
@@ -1699,66 +1768,100 @@ struct EnhancedItineraryListRow: View {
                         )
                     )
                     .frame(width: 60, height: 60)
-                
+
                 Image(systemName: "airplane.departure")
                     .font(.title2)
                     .foregroundColor(.white)
             }
-            
-            VStack(alignment: .leading, spacing: 6) {
+
+            VStack(alignment: .leading, spacing: 8) {
                 Text(itinerary.location)
                     .font(.headline)
                     .foregroundColor(.primary)
-                
-                HStack {
-                    Label("\(itinerary.duration) days", systemImage: "calendar")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
+                    .lineLimit(1)
+
+                HStack(spacing: 8) {
+                    Label(
+                        "\(itinerary.duration) \(String(localized: "Days"))",
+                        systemImage: "calendar"
+                    )
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
                     Text("•")
                         .foregroundColor(.secondary)
-                    
-                    Label("$\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))", systemImage: "dollarsign.circle")
-                        .font(.caption)
-                        .foregroundColor(.green)
+
+                    Label(
+                        String(
+                            localized: "$\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))"
+                        ),
+                        systemImage: "dollarsign.circle"
+                    )
+                    .font(.caption)
+                    .foregroundColor(.green)
                 }
-                
-                HStack {
+
+                // 🌿 Interests Section
+                FlexibleChipLayout(spacing: 6) {
                     ForEach(itinerary.interests.prefix(3), id: \.self) { interest in
-                        Text(interest)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                        Text(NSLocalizedString(interest, comment: "Interest category"))
+                            .font(.caption)
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
                             .background(Color.blue.opacity(0.1))
                             .foregroundColor(.primary)
                             .cornerRadius(8)
                     }
-                    
+
                     if itinerary.interests.count > 3 {
                         Text("+\(itinerary.interests.count - 3)")
-                            .font(.caption2)
-                        .foregroundColor(.secondary)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
                     }
                 }
             }
-            
+
             Spacer()
-            
+
             if itinerary.isShared {
                 Image(systemName: "person.2.fill")
                     .foregroundColor(.purple)
                     .font(.caption)
             }
-            
+
             Image(systemName: "chevron.right")
-            .foregroundColor(.secondary)
+                .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
+
+struct FlexibleChipLayout<Content: View>: View {
+    let spacing: CGFloat
+    let content: () -> Content
+
+    init(spacing: CGFloat = 8, @ViewBuilder content: @escaping () -> Content) {
+        self.spacing = spacing
+        self.content = content
+    }
+
+    var body: some View {
+        FlowLayout(spacing: spacing) {
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 
 // MARK: - Itinerary Detail View
 struct ItineraryDetailView: View {
@@ -1802,7 +1905,8 @@ struct ItineraryDetailView: View {
                         }
                         
                         HStack {
-                            Label("\(itinerary.duration) Days", systemImage: "calendar")
+                            let daysText = Locale.current.language.languageCode?.identifier == "tr" ? "Gün" : "Days"
+                            Label("\(itinerary.duration) \(daysText)", systemImage: "calendar")
                             Spacer()
                             VStack(alignment: .trailing) {
                                 Text("Budget: $\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))")
@@ -1815,7 +1919,7 @@ struct ItineraryDetailView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack {
                                 ForEach(itinerary.interests, id: \.self) { interest in
-                                    Text(interest)
+                                    Text(LocalizedStringKey(interest))
                                         .font(.caption)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
@@ -1832,26 +1936,23 @@ struct ItineraryDetailView: View {
                 .padding(.horizontal)
                 
                 // Action Buttons
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ActionButton(icon: "pencil", title: "Edit", color: .blue) {
-                            showEditSheet = true
-                        }
-                        
-                        ActionButton(icon: "square.and.arrow.up", title: "Share", color: .green) {
-                            shareItinerary()
-                        }
-                        
-                        ActionButton(icon: "person.2.fill", title: "Group", color: .purple) {
-                            showGroupShare = true
-                        }
-                        
-                        ActionButton(icon: "trash", title: "Delete", color: .red) {
-                            showDeleteAlert = true
-                        }
+                HStack(spacing: 12) {
+                    ActionButton(icon: "pencil", title: "Edit", color: .blue) {
+                        showEditSheet = true
                     }
-                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity)
+                    
+                    ActionButton(icon: "person.2.fill", title: "Group", color: .purple) {
+                        showGroupShare = true
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    ActionButton(icon: "trash", title: "Delete", color: .red) {
+                        showDeleteAlert = true
+                    }
+                    .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal)
                 
                 ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
                     EnhancedDayPlanCard(
@@ -1935,7 +2036,8 @@ struct ActionButton: View {
                 Text(title)
                     .font(.caption)
             }
-            .frame(width: 70, height: 70)
+            .frame(minWidth: 90, minHeight: 70)  // Changed from fixed width: 70
+            .frame(maxWidth: .infinity)          // Added to expand with container
             .background(color.opacity(0.1))
             .foregroundColor(color)
             .cornerRadius(15)
@@ -2037,10 +2139,9 @@ struct GroupPlansView: View {
         }
     }
 }
-
 struct GroupPlanRow: View {
     let group: GroupPlan
-    
+
     var body: some View {
         HStack(spacing: 15) {
             ZStack {
@@ -2053,46 +2154,53 @@ struct GroupPlanRow: View {
                         )
                     )
                     .frame(width: 60, height: 60)
-                
+
                 Image(systemName: "person.3.fill")
                     .font(.title2)
                     .foregroundColor(.white)
             }
-            
+
             VStack(alignment: .leading, spacing: 6) {
                 Text(group.name)
                     .font(.headline)
                     .foregroundColor(.primary)
-                
+
                 Text(group.itinerary.location)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
-                HStack {
-                    Label("\(group.members.count) members", systemImage: "person.2")
-                        .font(.caption)
-                        .foregroundColor(.purple)
-                    
+
+                HStack(spacing: 4) {
+                    Label(
+                        "\(group.members.count) \(String(localized: "members"))",
+                        systemImage: "person.2"
+                    )
+                    .font(.caption)
+                    .foregroundColor(.purple)
+                    .padding(.trailing, 4)
+
                     Text("•")
                         .foregroundColor(.secondary)
-                    
+
                     Text(group.createdAt, style: .date)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                .padding(.top, 2) // ✨ slight breathing space under location
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
         .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
+
 
 // MARK: - Group Share View
 struct GroupShareView: View {
@@ -2434,6 +2542,7 @@ struct MembersTabView: View {
     @State private var memberToRemove: GroupMember?
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var localMembers: [GroupMember] = [] // Add this
     
     var currentUserEmail: String {
         Auth.auth().currentUser?.email ?? ""
@@ -2443,39 +2552,47 @@ struct MembersTabView: View {
         ScrollView {
             VStack(spacing: 15) {
                 ModernCard {
-                    VStack(alignment: .leading, spacing: 15) {
-                        HStack {
-                            Label("Members", systemImage: "person.2.fill")
-                                .font(.headline)
-                                .foregroundColor(.purple)
-                            
-                            Spacer()
-                            
-                            Text("\(group.members.count) total")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
+                VStack(alignment: .leading, spacing: 15) {
+                    HStack {
+                        Label(String(localized: "Members"), systemImage: "person.2.fill")
+                            .font(.headline)
+                            .foregroundColor(.purple)
                         
-                        ForEach(group.members, id: \.email) { member in
-                            MemberRow(
-                                member: member,
-                                isCurrentUser: member.email == currentUserEmail,
-                                canRemove: isOwner && !member.isOwner && member.email != currentUserEmail,
-                                onRemove: {
-                                    memberToRemove = member
-                                    showRemoveAlert = true
-                                }
-                            )
-                            
-                            if member.email != group.members.last?.email {
-                                Divider()
+                        Spacer()
+                        
+                        Text("\(localMembers.count) \(String(localized: "total"))")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                    
+                    ForEach(localMembers, id: \.email) { member in
+                        MemberRow(
+                            member: member,
+                            isCurrentUser: member.email == currentUserEmail,
+                            canRemove: isOwner && !member.isOwner && member.email != currentUserEmail,
+                            onRemove: {
+                                memberToRemove = member
+                                showRemoveAlert = true
                             }
+                        )
+                        
+                        if member.email != localMembers.last?.email {
+                            Divider()
                         }
                     }
                 }
+            }
+
                 .padding(.horizontal)
             }
             .padding(.vertical)
+        }
+        .onAppear {
+            localMembers = group.members
+        }
+        .onChange(of: group.members) { newMembers in
+            localMembers = newMembers
         }
         .alert("Remove Member", isPresented: $showRemoveAlert) {
             Button("Cancel", role: .cancel) {
@@ -2501,6 +2618,12 @@ struct MembersTabView: View {
     private func removeMember(_ member: GroupMember) {
         Task {
             do {
+                // Animate the removal
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    localMembers.removeAll { $0.email == member.email }
+                }
+                
+                // Delete from Firestore
                 try await FirestoreService.shared.removeMemberFromGroup(
                     groupId: group.id,
                     memberEmail: member.email
@@ -2508,6 +2631,10 @@ struct MembersTabView: View {
                 await onMemberRemoved()
                 memberToRemove = nil
             } catch {
+                // If deletion fails, restore the member
+                withAnimation {
+                    localMembers = group.members
+                }
                 errorMessage = error.localizedDescription
                 showError = true
             }
@@ -2593,12 +2720,27 @@ struct EditItineraryView: View {
     @State private var errorMessage = ""
     
     static let builtInInterests = [
-        "Beaches", "Nightlife", "Restaurants", "Museums",
-        "Shopping", "Parks", "Adventure Sports", "Historical Sites",
-        "Art Galleries", "Local Markets", "Street Food", "Temples",
-        "Architecture", "Photography", "Hiking", "Water Sports",
-        "Cafes", "Live Music", "Theater", "Festivals"
+        "Beaches",
+        "Nightlife",
+        "Restaurants",
+        "Museums",
+        "Shopping",
+        "Parks",
+        "Adventure Sports",
+        "Historical Sites",
+        "Art Galleries",
+        "Local Markets",
+        "Street Food",
+        "Temples",
+        "Architecture",
+        "Hiking",
+        "Water Sports",
+        "Cafes",
+        "Live Music",
+        "Theater",
+        "Festivals"
     ]
+
     
     init(itinerary: Itinerary, viewModel: ItineraryListViewModel) {
         self.itinerary = itinerary
@@ -2607,15 +2749,19 @@ struct EditItineraryView: View {
         _editedBudget = State(initialValue: itinerary.budgetPerDay)
         _editedInterests = State(initialValue: Set(itinerary.interests))
         _customInterests = State(initialValue: itinerary.interests.filter { !Self.builtInInterests.contains($0) })
+        print(String(localized: "Beaches"))
+
     }
     
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 24) { // 🧱 more space between cards
+                    
+                    // 📍 LOCATION CARD
                     ModernCard {
                         VStack(alignment: .leading, spacing: 8) {
-                            Label("Location", systemImage: "mappin.circle.fill")
+                            Label(String(localized: "Location"), systemImage: "mappin.circle.fill")
                                 .font(.headline)
                                 .foregroundColor(.blue)
                             
@@ -2623,15 +2769,18 @@ struct EditItineraryView: View {
                                 .font(.title3)
                                 .fontWeight(.semibold)
                             
-                            Text("Location cannot be changed")
+                            Text(String(localized: "Location cannot be changed"))
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                     }
                     
+                    // 📅 DURATION CARD
                     ModernCard {
                         VStack(alignment: .leading, spacing: 12) {
-                            Label("Duration", systemImage: "calendar")
+                            Label(String(localized: "Duration"), systemImage: "calendar")
                                 .font(.headline)
                                 .foregroundColor(.blue)
                             
@@ -2640,7 +2789,7 @@ struct EditItineraryView: View {
                                     .font(.system(size: 48, weight: .bold))
                                     .foregroundColor(.blue)
                                 
-                                Text("days")
+                                Text(String(localized: "days"))
                                     .font(.title3)
                                     .foregroundColor(.gray)
                                 
@@ -2661,11 +2810,14 @@ struct EditItineraryView: View {
                                 }
                             }
                         }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                     }
                     
+                    // 💰 BUDGET CARD
                     ModernCard {
                         VStack(alignment: .leading, spacing: 12) {
-                            Label("Budget per Day", systemImage: "dollarsign.circle.fill")
+                            Label(String(localized: "Budget per Day"), systemImage: "dollarsign.circle.fill")
                                 .font(.headline)
                                 .foregroundColor(.blue)
                             
@@ -2676,11 +2828,14 @@ struct EditItineraryView: View {
                             Slider(value: $editedBudget, in: 50...1000, step: 10)
                                 .accentColor(.green)
                         }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                     }
                     
+                    // 🌟 INTERESTS CARD
                     ModernCard {
                         VStack(alignment: .leading, spacing: 15) {
-                            Label("Edit Interests", systemImage: "star.fill")
+                            Label(String(localized: "Edit Interests"), systemImage: "star.fill")
                                 .font(.headline)
                                 .foregroundColor(.blue)
                             
@@ -2711,7 +2866,7 @@ struct EditItineraryView: View {
                             }
                             
                             HStack {
-                                TextField("Add custom interest", text: $customInterestInput)
+                                TextField(String(localized: "Add custom interest"), text: $customInterestInput)
                                     .padding()
                                     .background(Color.gray.opacity(0.1))
                                     .cornerRadius(10)
@@ -2724,18 +2879,21 @@ struct EditItineraryView: View {
                                 }
                             }
                         }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                     }
                     
+                    // 🔁 REGENERATE BUTTON
                     Button(action: regenerateItinerary) {
                         HStack {
                             if isRegenerating {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                Text("Regenerating...")
+                                Text(String(localized: "Regenerating..."))
                                     .fontWeight(.semibold)
                             } else {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Regenerate Itinerary")
+                                Text(String(localized: "Regenerate Itinerary"))
                                     .fontWeight(.semibold)
                             }
                         }
@@ -2758,15 +2916,15 @@ struct EditItineraryView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Edit Itinerary")
+            .navigationTitle(String(localized: "Edit Itinerary"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button(String(localized: "Cancel")) { dismiss() }
                 }
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) { }
+            .alert(String(localized: "Error"), isPresented: $showError) {
+                Button(String(localized: "OK"), role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
@@ -2844,14 +3002,6 @@ import SwiftUI
 import FirebaseAuth
 
 // Add this custom text field style
-struct StyledTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding()
-            .background(Color(.tertiarySystemBackground))
-            .cornerRadius(10)
-    }
-}
 
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -2925,17 +3075,37 @@ struct ProfileView: View {
                         // 🔹 About Card
                         ModernCard {
                             VStack(alignment: .leading, spacing: 15) {
-                                Text("About")
+                                Text(String(localized: "About"))
                                     .font(.headline)
                                 
-                                InfoRow(icon: "airplane.departure", title: "Travel Itinerary", subtitle: "v1.0.0")
-                                InfoRow(icon: "sparkles", title: "AI Powered", subtitle: "Gemini Integration")
-                                InfoRow(icon: "map.fill", title: "Google Maps", subtitle: "Location Services")
-                                InfoRow(icon: "person.3.fill", title: "Group Plans", subtitle: "Collaborate with friends")
-                                InfoRow(icon: "exclamationmark.triangle.fill", title: "Verify Details", subtitle: "Results may not be 100% accurate.")
-
+                                InfoRow(
+                                    icon: "airplane.departure",
+                                    title: String(localized: "BagPckr Smart Travel Assistant"),
+                                    subtitle: "v1.1"
+                                )
+                                InfoRow(
+                                    icon: "sparkles",
+                                    title: String(localized: "AI Powered"),
+                                    subtitle: String(localized: "Gemini Integration")
+                                )
+                                InfoRow(
+                                    icon: "map.fill",
+                                    title: String(localized: "Google Maps"),
+                                    subtitle: String(localized: "Location Services")
+                                )
+                                InfoRow(
+                                    icon: "person.3.fill",
+                                    title: String(localized: "Group Plans"),
+                                    subtitle: String(localized: "Collaborate with friends")
+                                )
+                                InfoRow(
+                                    icon: "exclamationmark.triangle.fill",
+                                    title: String(localized: "Verify Details"),
+                                    subtitle: String(localized: "Results may not be accurate")
+                                )
                             }
                         }
+
                         
                         // 🔹 Sign Out Button
                         Button(action: { showSignOutAlert = true }) {
@@ -3123,15 +3293,15 @@ struct ProfileView: View {
                                             .cornerRadius(15)
                                             .shadow(color: .red.opacity(0.3), radius: 10, x: 0, y: 5)
                                         }
-                                        .disabled(email.isEmpty || password.isEmpty)
-                                        .opacity((email.isEmpty || password.isEmpty) ? 0.5 : 1.0)
+                                        //.disabled(email.isEmpty || password.isEmpty)
+                                        //.opacity((email.isEmpty || password.isEmpty) ? 0.5 : 1.0)
                                         
                                         Button {
                                             showDeleteSheet = false
                                         } label: {
                                             HStack {
                                                 Image(systemName: "xmark.circle")
-                                                Text(String(localized:"Cancel"))
+                                                Text("Cancel")
                                                     .fontWeight(.medium)
                                             }
                                             .frame(maxWidth: .infinity)
@@ -3220,9 +3390,13 @@ struct ItineraryTabView: View {
                         }
                         
                         HStack {
-                            Label("\(group.itinerary.duration) days", systemImage: "calendar")
+                            let daysText = Locale.current.language.languageCode?.identifier == "tr" ? "Gün" : "Days"
+                            Label("\(group.itinerary.duration) \(daysText)", systemImage: "calendar")
+
                             Spacer()
-                            Label("\(group.members.count) members", systemImage: "person.2")
+                            let membersText = Locale.current.language.languageCode?.identifier == "tr" ? "Üye" : "Members"
+
+                            Label("\(group.members.count) \(membersText)", systemImage: "person.2")
                         }
                         .font(.subheadline)
                     }
@@ -4350,3 +4524,11 @@ class FirestoreService {
     }
 }
 
+struct StyledTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding()
+            .background(Color(.tertiarySystemBackground))
+            .cornerRadius(10)
+    }
+}

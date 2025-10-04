@@ -24,20 +24,28 @@
         }
       }
     },
+    "%@%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$lld"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
-    "%lld days" : {
-
-    },
-    "%lld Days" : {
-
-    },
-    "%lld members" : {
-
-    },
-    "%lld total" : {
-
+    "%lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
     },
     "%lld/%lld" : {
       "localizations" : {
@@ -67,7 +75,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "• Sahibi"
+            "value" : "• Yönetici"
           }
         }
       }
@@ -83,22 +91,66 @@
       }
     },
     "+%lld" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        }
+      }
     },
     "$%@" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@"
+          }
+        }
+      }
     },
     "$%@ per person" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%@"
+          }
+        }
+      }
     },
     "$%lld" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺%lld"
+          }
+        }
+      }
     },
     "$50" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺1000"
+          }
+        }
+      }
     },
     "$1000" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "₺30000"
+          }
+        }
+      }
     },
     "About" : {
       "localizations" : {
@@ -106,6 +158,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hakkında"
+          }
+        }
+      }
+    },
+    "Accomodation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konaklama"
+          }
+        }
+      }
+    },
+    "Activities" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiviteler"
           }
         }
       }
@@ -160,6 +234,28 @@
         }
       }
     },
+    "Adventure Sports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Macera Sporları"
+          }
+        }
+      }
+    },
+    "AI Powered" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yapay Zeka Destekli"
+          }
+        }
+      }
+    },
     "Already have an account? Log In" : {
       "localizations" : {
         "tr" : {
@@ -176,6 +272,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tutar"
+          }
+        }
+      }
+    },
+    "Architecture" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mimari Güzellikler"
           }
         }
       }
@@ -200,6 +307,17 @@
         }
       }
     },
+    "Art Galleries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sanat Galerisi"
+          }
+        }
+      }
+    },
     "BagPckr" : {
       "localizations" : {
         "tr" : {
@@ -210,12 +328,26 @@
         }
       }
     },
+    "BagPckr Smart Travel Assistant" : {
+
+    },
     "Balances" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bakiyeler"
+          }
+        }
+      }
+    },
+    "Beaches" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plaj"
           }
         }
       }
@@ -251,7 +383,14 @@
       }
     },
     "Budget: $%lld" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bütçe: ₺%lld"
+          }
+        }
+      }
     },
     "By Category" : {
       "localizations" : {
@@ -259,6 +398,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kategoriye Göre"
+          }
+        }
+      }
+    },
+    "Cafes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kafe"
           }
         }
       }
@@ -289,6 +439,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kapat"
+          }
+        }
+      }
+    },
+    "Collaborate with friends" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arkadaşlarınla birlikte plan yap"
           }
         }
       }
@@ -432,6 +593,9 @@
           }
         }
       }
+    },
+    "Days" : {
+
     },
     "Delete" : {
       "localizations" : {
@@ -633,6 +797,39 @@
         }
       }
     },
+    "Festivals" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Festival"
+          }
+        }
+      }
+    },
+    "Food & Drinks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeme & İçme"
+          }
+        }
+      }
+    },
+    "Gemini Integration" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemini ile Entegre"
+          }
+        }
+      }
+    },
     "Generate Itinerary" : {
       "localizations" : {
         "tr" : {
@@ -652,6 +849,9 @@
           }
         }
       }
+    },
+    "Google Maps" : {
+
     },
     "Group Details" : {
       "localizations" : {
@@ -699,6 +899,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gizle"
+          }
+        }
+      }
+    },
+    "Hiking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doğa Yürüyüşü"
+          }
+        }
+      }
+    },
+    "Historical Sites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tarihi Yerler"
           }
         }
       }
@@ -753,6 +975,28 @@
         }
       }
     },
+    "Live Music" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canlı Müzik"
+          }
+        }
+      }
+    },
+    "Local Markets" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yerel Pazarlar"
+          }
+        }
+      }
+    },
     "Location" : {
       "localizations" : {
         "tr" : {
@@ -769,6 +1013,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Konum değiştirilemez"
+          }
+        }
+      }
+    },
+    "Location Services" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum Servisleri"
           }
         }
       }
@@ -803,12 +1057,34 @@
         }
       }
     },
+    "members" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Üye"
+          }
+        }
+      }
+    },
     "Members" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Üyeler"
+          }
+        }
+      }
+    },
+    "Museums" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Müze"
           }
         }
       }
@@ -828,7 +1104,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gezi Planlarım"
+            "value" : "Planlarım"
           }
         }
       }
@@ -839,6 +1115,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Yol Tarifi Al"
+          }
+        }
+      }
+    },
+    "Nightlife" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gece Hayatı"
           }
         }
       }
@@ -903,6 +1190,17 @@
         }
       }
     },
+    "Other" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diğer"
+          }
+        }
+      }
+    },
     "owes $%@" : {
       "localizations" : {
         "tr" : {
@@ -929,6 +1227,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ödeyen: %@"
+          }
+        }
+      }
+    },
+    "Parks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Park"
           }
         }
       }
@@ -1009,6 +1318,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Üyeyi Kaldır"
+          }
+        }
+      }
+    },
+    "Restaurants" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restoran"
+          }
+        }
+      }
+    },
+    "Results may not be accurate" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonuçlar tutarlı olmayabilir"
           }
         }
       }
@@ -1108,7 +1438,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kapandı"
+            "value" : "Borcu Yok"
           }
         }
       }
@@ -1129,6 +1459,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grupla Paylaş"
+          }
+        }
+      }
+    },
+    "Shopping" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alışveriş"
           }
         }
       }
@@ -1203,12 +1544,45 @@
         }
       }
     },
+    "Street Food" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sokak Lezzetleri"
+          }
+        }
+      }
+    },
     "Tap to change" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Değiştirmek için dokunun"
+          }
+        }
+      }
+    },
+    "Temples" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İbadethaneler"
+          }
+        }
+      }
+    },
+    "Theater" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiyatro"
           }
         }
       }
@@ -1233,6 +1607,9 @@
         }
       }
     },
+    "total" : {
+
+    },
     "Total Expenses" : {
       "localizations" : {
         "tr" : {
@@ -1243,7 +1620,18 @@
         }
       }
     },
+    "Total: %@%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Total: %1$@%2$lld"
+          }
+        }
+      }
+    },
     "Total: $%lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -1259,6 +1647,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "işlem"
+          }
+        }
+      }
+    },
+    "Transportation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulaşım"
           }
         }
       }
@@ -1283,12 +1682,34 @@
         }
       }
     },
+    "Verify Details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontrol Et"
+          }
+        }
+      }
+    },
     "View" : {
       "localizations" : {
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Görüntüle"
+          }
+        }
+      }
+    },
+    "Water Sports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su Sporları"
           }
         }
       }

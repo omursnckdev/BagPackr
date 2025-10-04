@@ -138,7 +138,7 @@ struct GroupPlan: Identifiable, Codable {
     }
 }
 
-struct GroupMember: Codable {
+struct GroupMember: Codable,Equatable {
     let email: String
     let isOwner: Bool
     
