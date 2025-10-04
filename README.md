@@ -18,7 +18,7 @@ Real-time Sync - Progress saved to cloud
 
 🧭 Smart Navigation
 
-One-Tap Directions - Navigate to any activity via Google Maps or Apple Maps
+One-Tap Directions - Navigate to any activity via Google Maps
 Distance Tracking - See how far each activity is from your location
 
 💰 Expense Management (Tricount-style)
