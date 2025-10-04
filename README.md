@@ -1,6 +1,7 @@
 BagPackr ✈️
 AI-powered travel itinerary planner with smart expense splitting for group trips.
 Features
+
 🗺️ Smart Itinerary Generation
 
 AI-Powered Planning - Gemini AI creates personalized day-by-day itineraries
@@ -58,8 +59,11 @@ Location data used only for trip planning
 No data sold to third parties
 
 License
+
 MIT License - see LICENSE file
+
 Support
+
 For issues or questions, open an issue on GitHub.
 
 Built with ❤️ using SwiftUI and Firebase
