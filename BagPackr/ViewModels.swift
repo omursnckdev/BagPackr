@@ -209,6 +209,7 @@ class ItineraryListViewModel: ObservableObject {
     func loadItineraries() async {
         do {
             itineraries = try await FirestoreService.shared.fetchItineraries()
+            
         } catch {
             print("Error loading itineraries: \(error)")
         }
