@@ -116,10 +116,7 @@ class GeminiService {
             throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
         
-        // Debug: Print the raw response
-        print("Raw Gemini Response:")
-        print(text)
-        print("---")
+
         
         // Clean the response more aggressively
         var cleanedText = text

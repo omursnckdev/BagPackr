@@ -37,7 +37,7 @@ struct Itinerary: Identifiable, Codable, Equatable, Hashable {
          duration: Int,
          interests: [String],
          dailyPlans: [DailyPlan],
-         budgetPerDay: Double = 150,
+         budgetPerDay: Double = 1000,
          createdAt: Date = Date(),
          isShared: Bool = false) {
         self.id = id

@@ -373,6 +373,7 @@
       }
     },
     "Budget range" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -563,6 +564,9 @@
           }
         }
       }
+    },
+    "Custom" : {
+
     },
     "Custom Interests" : {
       "localizations" : {
@@ -1555,6 +1559,9 @@
         }
       }
     },
+    "Tap number to type" : {
+
+    },
     "Tap to change" : {
       "localizations" : {
         "tr" : {
@@ -1620,15 +1627,8 @@
         }
       }
     },
-    "Total: %@%lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Total: %1$@%2$lld"
-          }
-        }
-      }
+    "Total:" : {
+
     },
     "Total: $%lld" : {
       "extractionState" : "stale",

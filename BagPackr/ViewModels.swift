@@ -128,7 +128,7 @@ class AuthViewModel: ObservableObject {
 class CreateItineraryViewModel: ObservableObject {
     @Published var selectedLocation: LocationData?
     @Published var duration = 3
-    @Published var budgetPerDay: Double = 150
+    @Published var budgetPerDay: Double = 1000
     @Published var selectedInterests: Set<String> = []
     @Published var customInterestInput = ""
     @Published var customInterests: [String] = []
