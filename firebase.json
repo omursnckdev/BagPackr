@@ -17,5 +17,13 @@
       "region": "us-central1",
       "gen": 2
     }
-  ]
+  ],
+  "hosting": {
+    "public": "y",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
 }

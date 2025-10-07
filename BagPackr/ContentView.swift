@@ -2126,98 +2126,106 @@ var body: some View {
 
 // MARK: - Group Plans View
 struct GroupPlansView: View {
-@StateObject private var viewModel = GroupPlansViewModel()
-@State private var showCreateGroup = false
-
-var body: some View {
-    NavigationView {
-        ZStack {
-            if viewModel.groupPlans.isEmpty {
-                VStack(spacing: 20) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.purple.opacity(0.2), .pink.opacity(0.2)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+    @StateObject private var viewModel = GroupPlansViewModel()
+    @State private var showCreateGroup = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                if viewModel.groupPlans.isEmpty {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.purple.opacity(0.2), .pink.opacity(0.2)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 120, height: 120)
-                        
-                        Image(systemName: "person.3.fill")
-                            .font(.system(size: 50))
-                            .foregroundColor(.purple)
-                    }
-                    
-                    Text("No Group Plans")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    Text("Create or join a group to plan trips together!")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                    
-                    Button(action: { showCreateGroup = true }) {
-                        Text("Create Group Plan")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: 200)
-                            .padding()
-                            .background(
-                                LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
-                            )
-                            .foregroundColor(.white)
-                            .cornerRadius(15)
-                    }
-                }
-            } else {
-                List {
-                    ForEach(viewModel.groupPlans) { group in
-                        NavigationLink(destination: GroupDetailView(group: group)) {
-                            GroupPlanRow(group: group)
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.purple)
                         }
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+                        
+                        Text("No Group Plans")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text("Create or join a group to plan trips together!")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                        
+                        Button(action: { showCreateGroup = true }) {
+                            Text("Create Group Plan")
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: 200)
+                                .padding()
+                                .background(
+                                    LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(15)
+                        }
                     }
-                    .onDelete(perform: deleteGroups)
+                    .transition(.opacity.combined(with: .scale))
+                } else {
+                    List {
+                        ForEach(viewModel.groupPlans) { group in
+                            NavigationLink(destination: GroupDetailView(group: group)) {
+                                GroupPlanRow(group: group)
+                            }
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .trailing).combined(with: .opacity),
+                                removal: .move(edge: .leading).combined(with: .opacity)
+                            ))
+                        }
+                        .onDelete(perform: deleteGroups)
+                    }
+                    .listStyle(.plain)
+                    .background(Color(.systemGroupedBackground))
+                    .transition(.opacity.combined(with: .scale))
                 }
-                .listStyle(.plain)
-                .background(Color(.systemGroupedBackground))
+            }
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.groupPlans.count)
+            .navigationTitle("Group Plans")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showCreateGroup = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+            .sheet(isPresented: $showCreateGroup) {
+                CreateGroupView(viewModel: viewModel)
             }
         }
-        .navigationTitle("Group Plans")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showCreateGroup = true }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                }
+        .onAppear {
+            viewModel.startListening()
+        }
+        .onDisappear {
+            viewModel.stopListening()
+        }
+    }
+    
+    private func deleteGroups(at offsets: IndexSet) {
+        Task {
+            for index in offsets {
+                let group = viewModel.groupPlans[index]
+                try? await FirestoreService.shared.deleteGroup(group.id)
             }
         }
-        .sheet(isPresented: $showCreateGroup) {
-            CreateGroupView(viewModel: viewModel)
-        }
-    }
-    .onAppear {
-        viewModel.startListening() // Real-time updates
-    }
-    .onDisappear {
-        viewModel.stopListening()
     }
 }
 
-private func deleteGroups(at offsets: IndexSet) {
-    Task {
-        for index in offsets {
-            let group = viewModel.groupPlans[index]
-            try? await FirestoreService.shared.deleteGroup(group.id)
-        }
-    }
-}
-}
 struct GroupPlanRow: View {
 let group: GroupPlan
 
@@ -4208,15 +4216,17 @@ var body: some View {
                 TextField("Amount", text: $amount)
                     .keyboardType(.decimalPad)
                 
-                Picker("Category", selection: $selectedCategory) {
-                    ForEach(ExpenseCategory.allCases, id: \.self) { category in
+                Picker(String(localized: "Category"), selection: $selectedCategory) {
+                    ForEach(ExpenseCategory.allCases) { category in
                         HStack {
                             Image(systemName: category.icon)
-                            Text(category.rawValue)
+                            Text(category.localizedName) // ✅ works with LocalizedStringKey
                         }
                         .tag(category)
                     }
                 }
+
+
             }
             
             Section(header: Text("Paid By")) {

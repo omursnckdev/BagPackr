@@ -179,14 +179,20 @@ struct GroupExpense: Identifiable, Codable {
     }
 }
 
-enum ExpenseCategory: String, Codable, CaseIterable {
+enum ExpenseCategory: String, Codable, CaseIterable, Identifiable {
     case accommodation = "Accommodation"
     case food = "Food & Drinks"
     case transportation = "Transportation"
     case activities = "Activities"
     case shopping = "Shopping"
     case other = "Other"
-    
+
+    var id: Self { self }
+
+    var localizedName: LocalizedStringKey {
+        LocalizedStringKey(rawValue)
+    }
+
     var icon: String {
         switch self {
         case .accommodation: return "bed.double.fill"
@@ -197,7 +203,7 @@ enum ExpenseCategory: String, Codable, CaseIterable {
         case .other: return "creditcard.fill"
         }
     }
-    
+
     var color: Color {
         switch self {
         case .accommodation: return .blue
@@ -209,6 +215,8 @@ enum ExpenseCategory: String, Codable, CaseIterable {
         }
     }
 }
+
+
 
 struct Balance {
     let person: String
