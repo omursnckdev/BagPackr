@@ -1,0 +1,10 @@
+{
+  "message": {
+    "token": "ejKLG4ukFEzfnhqViALt1B:APA91bEeDPbANuGstKaHg2HHqVPKv92IwepvDRdgia2rzucSzjPzZaqmxLThd_Yf2A8dzUccVFaHE4AXoJL-NW6zKaPqbX02T9SYGev8boxl9mhpNQnyPCE",
+    "notification": {
+      "title": "Test Bildirimi",
+      "body": "Bu mesaj doğrudan FCM token'a gönderildi"
+    }
+  }
+}
+

@@ -844,7 +844,18 @@
         }
       }
     },
+    "gets back %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "gets back %1$@%2$@"
+          }
+        }
+      }
+    },
     "gets back $%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -989,6 +1000,9 @@
           }
         }
       }
+    },
+    "Loading ad..." : {
+
     },
     "Local Markets" : {
       "extractionState" : "manual",
@@ -1205,7 +1219,18 @@
         }
       }
     },
+    "owes %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "owes %1$@%2$@"
+          }
+        }
+      }
+    },
     "owes $%@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {

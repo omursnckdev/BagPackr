@@ -25,7 +25,13 @@ exports.sendFirestoreNotification = onDocumentCreated(
           title: data.title,
           body: data.body,
         },
-        // Add custom data to the notification
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+            },
+          },
+        },
         data: data.data || {},
       };
 
@@ -33,7 +39,6 @@ exports.sendFirestoreNotification = onDocumentCreated(
         const response = await getMessaging().send(message);
         console.log("✅ Notification sent successfully:", response);
 
-        // Delete the notification document after successful send
         await getFirestore().collection("notifications").doc(docId).delete();
         console.log("🗑️ Notification document deleted");
       } catch (error) {
@@ -41,7 +46,6 @@ exports.sendFirestoreNotification = onDocumentCreated(
         console.error("❌ Error code:", error.code);
         console.error("❌ Error message:", error.message);
 
-        // Optionally: Mark the document as failed instead of deleting
         await getFirestore().collection("notifications").doc(docId).update({
           error: error.message,
           errorCode: error.code,

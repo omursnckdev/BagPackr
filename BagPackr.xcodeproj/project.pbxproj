@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		671A0C292E8CFB5000A85EA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 671A0C282E8CFB4F00A85EA5 /* GoogleService-Info.plist */; };
 		671A0C2C2E8D08C400A85EA5 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C2B2E8D08C400A85EA5 /* FirebaseAuth */; };
 		671A0C2E2E8D08C400A85EA5 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C2D2E8D08C400A85EA5 /* FirebaseFirestore */; };
 		671A0C312E8D0AC300A85EA5 /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C302E8D0AC300A85EA5 /* GoogleGenerativeAI */; };
@@ -19,12 +18,13 @@
 		677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7072E8E667200DE95A9 /* FirebaseFunctions */; };
 		677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */; };
 		67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 67A0170A2E8FA783000E573B /* FirebaseMessaging */; };
+		67BDEA512E965CEA00FB1658 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BagPackr.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		671A0C282E8CFB4F00A85EA5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		67596D372E90098900703314 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,7 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				67596D372E90098900703314 /* Localizable.xcstrings */,
-				671A0C282E8CFB4F00A85EA5 /* GoogleService-Info.plist */,
+				67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */,
 				671A0C1C2E8CFB2E00A85EA5 /* BagPackr */,
 				671A0C1B2E8CFB2E00A85EA5 /* Products */,
 			);
@@ -170,7 +170,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				671A0C292E8CFB5000A85EA5 /* GoogleService-Info.plist in Resources */,
+				67BDEA512E965CEA00FB1658 /* GoogleService-Info.plist in Resources */,
 				67596D382E90098900703314 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -337,7 +337,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -381,7 +381,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

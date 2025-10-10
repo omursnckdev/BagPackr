@@ -71,55 +71,106 @@ class AuthViewModel: ObservableObject {
     }
     
     /// Permanently deletes the user account and Firestore data
-    ///
     func deleteAccount(email: String, password: String, completion: @escaping (Error?) -> Void) {
-        guard let user = Auth.auth().currentUser else {
-            completion(nil)
+    guard let user = Auth.auth().currentUser else {
+        completion(nil)
+        return
+    }
+
+    let userId = user.uid
+    let userEmail = user.email ?? email
+    let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+
+    // Re-authenticate first
+    user.reauthenticate(with: credential) { _, error in
+        if let error = error {
+            completion(error)
             return
         }
 
-        let userId = user.uid
-        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
-
-        // 🔑 Re-authenticate first
-        user.reauthenticate(with: credential) { _, error in
-            if let error = error {
-                completion(error)
-                return
-            }
-
-            // 1. Delete Firestore data
-            self.db.collection("itineraries").whereField("userId", isEqualTo: userId).getDocuments { snapshot, error in
-                if let error = error {
-                    completion(error)
-                    return
-                }
-
-                let batch = self.db.batch()
-                snapshot?.documents.forEach { batch.deleteDocument($0.reference) }
-
-                batch.commit { error in
-                    if let error = error {
-                        completion(error)
-                        return
+        Task {
+            do {
+                // 1. Delete all user's itineraries (including subcollections)
+                let itinerariesSnapshot = try await self.db.collection("itineraries")
+                    .whereField("userId", isEqualTo: userId)
+                    .getDocuments()
+                
+                for doc in itinerariesSnapshot.documents {
+                    // Delete progress subcollection
+                    let progressDocs = try await doc.reference.collection("progress").getDocuments()
+                    for progressDoc in progressDocs.documents {
+                        try await progressDoc.reference.delete()
                     }
-
-                    // 2. Delete Firebase Auth account
-                    user.delete { error in
-                        if let error = error {
-                            completion(error)
-                        } else {
-                            Task { @MainActor in
-                                self.currentUser = nil
-                                self.isAuthenticated = false
+                    // Delete itinerary
+                    try await doc.reference.delete()
+                }
+                
+                // 2. Remove user from all group plans
+                let groupsSnapshot = try await self.db.collection("groupPlans")
+                    .whereField("memberEmails", arrayContains: userEmail)
+                    .getDocuments()
+                
+                for doc in groupsSnapshot.documents {
+                    let groupData = doc.data()
+                    
+                    // Check if user is the owner
+                    if let members = groupData["members"] as? [[String: Any]] {
+                        let isOwner = members.contains { member in
+                            (member["email"] as? String) == userEmail && (member["isOwner"] as? Bool) == true
+                        }
+                        
+                        if isOwner {
+                            // Delete entire group if user is owner
+                            // Delete expenses subcollection
+                            let expensesDocs = try await doc.reference.collection("expenses").getDocuments()
+                            for expenseDoc in expensesDocs.documents {
+                                try await expenseDoc.reference.delete()
                             }
-                            completion(nil)
+                            
+                            // Delete settlements subcollection
+                            let settlementsDocs = try await doc.reference.collection("settlements").getDocuments()
+                            for settlementDoc in settlementsDocs.documents {
+                                try await settlementDoc.reference.delete()
+                            }
+                            
+                            // Delete group
+                            try await doc.reference.delete()
+                        } else {
+                            // Just remove user from group
+                            try await doc.reference.updateData([
+                                "members": FieldValue.arrayRemove([["email": userEmail, "isOwner": false]]),
+                                "memberEmails": FieldValue.arrayRemove([userEmail])
+                            ])
                         }
                     }
                 }
+                
+                // 3. Delete user's FCM token document
+                let userDocs = try await self.db.collection("users")
+                    .whereField("email", isEqualTo: userEmail)
+                    .getDocuments()
+                
+                for doc in userDocs.documents {
+                    try await doc.reference.delete()
+                }
+                
+                // 4. Delete Firebase Auth account
+                try await user.delete()
+                
+                // 5. Update local state
+                await MainActor.run {
+                    self.currentUser = nil
+                    self.isAuthenticated = false
+                }
+                
+                completion(nil)
+                
+            } catch {
+                completion(error)
             }
         }
     }
+}
 
 }
 

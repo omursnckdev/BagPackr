@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.aoSen.BagPackr</string>
+	<string>com.aoSnc.BagPakr</string>
 	<key>PROJECT_ID</key>
 	<string>bagpackr-3417a</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true/>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:702752487237:ios:51474a445572f05c2c702c</string>
+	<string>1:702752487237:ios:5beeff465bf42b8b2c702c</string>
 </dict>
 </plist>
