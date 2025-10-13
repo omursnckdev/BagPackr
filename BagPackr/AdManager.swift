@@ -11,7 +11,7 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     static let shared = AdManager()
     
     // Test için Google'ın resmi ID'si:
-    let testAdUnitID = "ca-app-pub-3940256099942544/4411468910"
+    let adUnitID = "ca-app-pub-5314394610297471/7407902751" // Gerçek ID
     // let liveAdUnitID = "ca-app-pub-5314394610297471/7407902751"
     
     override init() {
@@ -21,8 +21,8 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     
     func configureGAD() {
         // Test cihazını ekle
-        MobileAds.shared.requestConfiguration.testDeviceIdentifiers =
-            ["464c23817b0bc6d92c00cbbe0bacd6b8"]
+     //   MobileAds.shared.requestConfiguration.testDeviceIdentifiers =
+       //     ["464c23817b0bc6d92c00cbbe0bacd6b8"]
         
         // GAD'i başlat
         MobileAds.shared.start { [weak self] status in
@@ -49,7 +49,7 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
         let request = Request()
         
         InterstitialAd.load(
-            with: testAdUnitID,
+            with: adUnitID,
             request: request
         ) { [weak self] ad, error in
             DispatchQueue.main.async {
