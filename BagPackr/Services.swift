@@ -6,7 +6,6 @@
 //
 
 import Foundation
-// MARK: - Services
 import SwiftUI
 import FirebaseCore
 import GoogleMaps
@@ -16,6 +15,9 @@ import Combine
 import GoogleMobileAds
 import GoogleGenerativeAI
 import FirebaseAuth
+import FirebaseFirestore
+
+// MARK: - Gemini Service
 
 class GeminiService {
     static let shared = GeminiService()
@@ -116,8 +118,6 @@ class GeminiService {
             throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
         
-
-        
         // Clean the response more aggressively
         var cleanedText = text
             .replacingOccurrences(of: "```json", with: "")
@@ -193,4 +193,199 @@ struct GeminiActivity: Codable {
     let time: String
     let distance: Double
     let cost: Double
+}
+
+// MARK: - Plan Limit Service
+
+class PlanLimitService: ObservableObject {
+    static let shared = PlanLimitService()
+    
+    @Published var remainingPlans: Int = 2
+    @Published var nextResetTime: Date?
+    @Published var isPremium: Bool = false
+    @Published var lastPlanTime: Date?
+    
+    private let db = Firestore.firestore()
+    
+    // Free tier limits
+    private let freePlanLimit = 2
+    private let resetIntervalHours = 24
+    
+    private init() {
+        checkPlanLimit()
+    }
+    
+    func checkPlanLimit() {
+        // ✅ Düzeltme: AuthService yerine Auth.auth()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            remainingPlans = 0
+            return
+        }
+        
+        let userRef = db.collection("users").document(userId)
+        
+        userRef.getDocument { [weak self] snapshot, error in
+            guard let self = self,
+                  let data = snapshot?.data() else {
+                // New user - give full limit
+                self?.remainingPlans = self?.freePlanLimit ?? 2
+                return
+            }
+            
+            self.isPremium = data["isPremium"] as? Bool ?? false
+            
+            // Premium users have unlimited plans
+            if self.isPremium {
+                self.remainingPlans = 999
+                return
+            }
+            
+            // Check last plan generation time
+            let lastPlanTimestamp = data["lastPlanTime"] as? Timestamp
+            let planCount = data["planCount"] as? Int ?? 0
+            
+            if let lastTimestamp = lastPlanTimestamp {
+                let lastTime = lastTimestamp.dateValue()
+                self.lastPlanTime = lastTime
+                
+                let hoursSinceLastPlan = Date().timeIntervalSince(lastTime) / 3600
+                
+                if hoursSinceLastPlan >= Double(self.resetIntervalHours) {
+                    // Reset limit
+                    self.remainingPlans = self.freePlanLimit
+                    self.nextResetTime = nil
+                    self.resetPlanCount(userId: userId)
+                } else {
+                    // Calculate remaining plans
+                    self.remainingPlans = max(0, self.freePlanLimit - planCount)
+                    self.nextResetTime = lastTime.addingTimeInterval(TimeInterval(self.resetIntervalHours * 3600))
+                }
+            } else {
+                // First time user
+                self.remainingPlans = self.freePlanLimit
+                self.nextResetTime = nil
+            }
+        }
+    }
+    
+    func canGeneratePlan() -> Bool {
+        return isPremium || remainingPlans > 0
+    }
+    
+    func incrementPlanCount() async throws {
+        // ✅ Düzeltme: AuthService yerine Auth.auth()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "PlanLimitService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        let userRef = db.collection("users").document(userId)
+        
+        // Get current data
+        let snapshot = try await userRef.getDocument()
+        let currentCount = snapshot.data()?["planCount"] as? Int ?? 0
+        let lastPlanTimestamp = snapshot.data()?["lastPlanTime"] as? Timestamp
+        
+        // Check if we need to reset
+        var shouldReset = false
+        if let lastTimestamp = lastPlanTimestamp {
+            let lastTime = lastTimestamp.dateValue()
+            let hoursSince = Date().timeIntervalSince(lastTime) / 3600
+            shouldReset = hoursSince >= Double(resetIntervalHours)
+        }
+        
+        if shouldReset {
+            // Reset count
+            try await userRef.setData([
+                "lastPlanTime": Timestamp(date: Date()),
+                "planCount": 1
+            ], merge: true)
+            
+            await MainActor.run {
+                self.remainingPlans = self.freePlanLimit - 1
+                self.lastPlanTime = Date()
+                self.nextResetTime = Date().addingTimeInterval(TimeInterval(self.resetIntervalHours * 3600))
+            }
+        } else {
+            // Increment count
+            try await userRef.setData([
+                "lastPlanTime": Timestamp(date: Date()),
+                "planCount": currentCount + 1
+            ], merge: true)
+            
+            await MainActor.run {
+                if !self.isPremium {
+                    self.remainingPlans = max(0, self.remainingPlans - 1)
+                }
+                self.lastPlanTime = Date()
+            }
+        }
+    }
+    
+    private func resetPlanCount(userId: String) {
+        let userRef = db.collection("users").document(userId)
+        
+        userRef.setData([
+            "planCount": 0,
+            "lastPlanTime": Timestamp(date: Date())
+        ], merge: true)
+    }
+    
+    func getTimeUntilReset() -> String {
+        guard let resetTime = nextResetTime else {
+            return "24h 0m"
+        }
+        
+        let interval = resetTime.timeIntervalSinceNow
+        
+        if interval <= 0 {
+            // Time to reset
+            checkPlanLimit()
+            return "Resetting..."
+        }
+        
+        let hours = Int(interval / 3600)
+        let minutes = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
+        
+        return String(format: "%dh %dm", max(0, hours), max(0, minutes))
+    }
+    
+    func upgradeToPremium() async throws {
+        // ✅ Düzeltme: AuthService yerine Auth.auth()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "PlanLimitService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        let userRef = db.collection("users").document(userId)
+        
+        try await userRef.setData([
+            "isPremium": true,
+            "premiumActivatedAt": Timestamp(date: Date())
+        ], merge: true)
+        
+        await MainActor.run {
+            self.isPremium = true
+            self.remainingPlans = 999
+        }
+    }
+    
+    func checkPremiumStatus() async throws -> Bool {
+        // ✅ Düzeltme: AuthService yerine Auth.auth()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            return false
+        }
+        
+        let userRef = db.collection("users").document(userId)
+        let snapshot = try await userRef.getDocument()
+        
+        let premium = snapshot.data()?["isPremium"] as? Bool ?? false
+        
+        await MainActor.run {
+            self.isPremium = premium
+            if premium {
+                self.remainingPlans = 999
+            }
+        }
+        
+        return premium
+    }
 }

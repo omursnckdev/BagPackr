@@ -14,10 +14,126 @@ import MapKit
 import Combine
 import GoogleMobileAds
 // MARK: - Models
-struct LocationData: Codable {
+// Models/LocationData.swift
+
+struct LocationData: Identifiable, Codable, Equatable, Hashable {
+    let id: String
     let name: String
     let latitude: Double
     let longitude: Double
+    
+    init(id: String = UUID().uuidString, name: String, latitude: Double, longitude: Double) {
+        self.id = id
+        self.name = name
+        self.latitude = latitude
+        self.longitude = longitude
+    }
+    
+    // ✅ Equatable conformance
+    static func == (lhs: LocationData, rhs: LocationData) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    // ✅ Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+// Models/MultiCityGroupPlan.swift
+import Foundation
+
+struct MultiCityGroupPlan: Identifiable, Codable {
+    let id: String
+    let name: String
+    let multiCityItinerary: MultiCityItinerary
+    let members: [GroupMember]
+    let memberEmails: [String]
+    let createdAt: Date
+    let ownerId: String
+    
+    init(name: String, multiCityItinerary: MultiCityItinerary, members: [GroupMember]) {
+        self.id = UUID().uuidString
+        self.name = name
+        self.multiCityItinerary = multiCityItinerary
+        self.members = members
+        self.memberEmails = members.map { $0.email }
+        self.createdAt = Date()
+        self.ownerId = members.first(where: { $0.isOwner })?.email ?? ""
+    }
+}
+
+// Models/MultiCityItinerary.swift
+
+
+struct CityStop: Identifiable, Codable, Equatable, Hashable {
+    let id: String
+    var location: LocationData
+    var duration: Int // days
+    var arrivalDate: Date?
+    var departureDate: Date?
+    var order: Int // For sorting
+    
+    init(id: String = UUID().uuidString, location: LocationData, duration: Int, order: Int = 0) {
+        self.id = id
+        self.location = location
+        self.duration = duration
+        self.arrivalDate = nil
+        self.departureDate = nil
+        self.order = order
+    }
+    
+    // ✅ Equatable conformance
+    static func == (lhs: CityStop, rhs: CityStop) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    // ✅ Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+struct MultiCityItinerary: Identifiable, Codable {
+    let id: String
+    let userId: String
+    var title: String
+    var cityStops: [CityStop]
+    var totalDuration: Int
+    var interests: [String]
+    var budgetPerDay: Double
+    var createdAt: Date
+    var itineraries: [String: Itinerary] // cityId: Itinerary
+    
+    init(
+        id: String = UUID().uuidString,
+        userId: String,
+        title: String,
+        cityStops: [CityStop],
+        interests: [String],
+        budgetPerDay: Double
+    ) {
+        self.id = id
+        self.userId = userId
+        self.title = title
+        self.cityStops = cityStops
+        self.totalDuration = cityStops.reduce(0) { $0 + $1.duration }
+        self.interests = interests
+        self.budgetPerDay = budgetPerDay
+        self.createdAt = Date()
+        self.itineraries = [:]
+    }
+    
+    var totalBudget: Double {
+        return budgetPerDay * Double(totalDuration)
+    }
+    
+    var citiesCount: Int {
+        return cityStops.count
+    }
+    
+    var cityNames: String {
+        return cityStops.map { $0.location.name }.joined(separator: " → ")
+    }
 }
 
 struct Itinerary: Identifiable, Codable, Equatable, Hashable {
@@ -236,3 +352,4 @@ struct Settlement: Identifiable, Codable {
         self.amount = amount
     }
 }
+

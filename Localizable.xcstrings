@@ -47,6 +47,21 @@
         }
       }
     },
+    "%lld cities" : {
+
+    },
+    "%lld days" : {
+
+    },
+    "%lld days total" : {
+
+    },
+    "%lld members" : {
+
+    },
+    "%lld plans left" : {
+
+    },
     "%lld/%lld" : {
       "localizations" : {
         "en" : {
@@ -96,6 +111,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%lld"
+          }
+        }
+      }
+    },
+    "🗺️ %@ - %lld days" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "🗺️ %1$@ - %2$lld days"
           }
         }
       }
@@ -152,6 +177,9 @@
         }
       }
     },
+    "7 days free, then $4.99/month" : {
+
+    },
     "About" : {
       "localizations" : {
         "tr" : {
@@ -193,6 +221,15 @@
           }
         }
       }
+    },
+    "Add at least 2 cities to create a multi-city trip" : {
+
+    },
+    "Add City" : {
+
+    },
+    "Add City Stop" : {
+
     },
     "Add custom interest" : {
       "localizations" : {
@@ -287,6 +324,9 @@
         }
       }
     },
+    "Are you sure you want to delete this group? This action cannot be undone." : {
+
+    },
     "Are you sure you want to delete this itinerary? This action cannot be undone." : {
       "localizations" : {
         "tr" : {
@@ -296,6 +336,9 @@
           }
         }
       }
+    },
+    "Are you sure you want to delete this multi-city trip? This action cannot be undone." : {
+
     },
     "Are you sure you want to sign out?" : {
       "localizations" : {
@@ -424,6 +467,9 @@
         }
       }
     },
+    "Cancel anytime" : {
+
+    },
     "Category" : {
       "localizations" : {
         "tr" : {
@@ -433,6 +479,12 @@
           }
         }
       }
+    },
+    "Cities (%lld)" : {
+
+    },
+    "City" : {
+
     },
     "Close" : {
       "localizations" : {
@@ -631,6 +683,9 @@
         }
       }
     },
+    "Delete Group" : {
+
+    },
     "Delete Itinerary" : {
       "localizations" : {
         "tr" : {
@@ -650,6 +705,9 @@
           }
         }
       }
+    },
+    "Delete Trip" : {
+
     },
     "Deleting account..." : {
       "localizations" : {
@@ -691,6 +749,9 @@
         }
       }
     },
+    "Done" : {
+
+    },
     "Duration" : {
       "localizations" : {
         "tr" : {
@@ -700,6 +761,9 @@
           }
         }
       }
+    },
+    "e.g., Europe Adventure" : {
+
     },
     "e.g., Temple, Sushi, Kebab" : {
       "localizations" : {
@@ -844,6 +908,12 @@
         }
       }
     },
+    "Generate Multi-City Trip" : {
+
+    },
+    "Generating..." : {
+
+    },
     "gets back %@%@" : {
       "localizations" : {
         "en" : {
@@ -939,6 +1009,9 @@
           }
         }
       }
+    },
+    "Interests" : {
+
     },
     "Invite Member" : {
       "localizations" : {
@@ -1096,6 +1169,24 @@
         }
       }
     },
+    "Members (%lld)" : {
+
+    },
+    "MOST POPULAR" : {
+
+    },
+    "Multi-City" : {
+
+    },
+    "Multi-City Groups" : {
+
+    },
+    "Multi-City Trip" : {
+
+    },
+    "Multi-City Trips" : {
+
+    },
     "Museums" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1240,6 +1331,9 @@
         }
       }
     },
+    "OWNER" : {
+
+    },
     "Paid By" : {
       "localizations" : {
         "tr" : {
@@ -1281,6 +1375,9 @@
         }
       }
     },
+    "Plan Limit Reached" : {
+
+    },
     "Plan your perfect journey" : {
       "localizations" : {
         "tr" : {
@@ -1290,6 +1387,9 @@
           }
         }
       }
+    },
+    "Premium Member" : {
+
     },
     "Profile" : {
       "localizations" : {
@@ -1351,6 +1451,9 @@
         }
       }
     },
+    "Resets in %@" : {
+
+    },
     "Restaurants" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1361,6 +1464,9 @@
           }
         }
       }
+    },
+    "Restore Purchases" : {
+
     },
     "Results may not be accurate" : {
       "localizations" : {
@@ -1533,6 +1639,12 @@
         }
       }
     },
+    "Single City Groups" : {
+
+    },
+    "Single City Trips" : {
+
+    },
     "Spent: $%lld" : {
       "localizations" : {
         "tr" : {
@@ -1572,6 +1684,9 @@
           }
         }
       }
+    },
+    "Start 7-Day Free Trial" : {
+
     },
     "Street Food" : {
       "extractionState" : "manual",
@@ -1652,7 +1767,13 @@
         }
       }
     },
+    "Total Trip:" : {
+
+    },
     "Total:" : {
+
+    },
+    "Total: %lld days" : {
 
     },
     "Total: $%lld" : {
@@ -1697,6 +1818,9 @@
         }
       }
     },
+    "Trip Title" : {
+
+    },
     "Trip: %@" : {
       "localizations" : {
         "tr" : {
@@ -1706,6 +1830,18 @@
           }
         }
       }
+    },
+    "Unlimited plans" : {
+
+    },
+    "Unlock unlimited travel planning" : {
+
+    },
+    "Upgrade" : {
+
+    },
+    "Upgrade to Premium" : {
+
     },
     "Verify Details" : {
       "extractionState" : "manual",
@@ -1728,6 +1864,9 @@
         }
       }
     },
+    "Wait" : {
+
+    },
     "Water Sports" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1748,6 +1887,9 @@
           }
         }
       }
+    },
+    "You've reached your free plan limit. Next reset in %@" : {
+
     },
     "Your Itinerary" : {
       "localizations" : {
