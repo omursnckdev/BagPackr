@@ -22,31 +22,6 @@ struct ItineraryListView: View {
                     emptyStateView
                 } else {
                     List {
-                        // Multi-City Section
-                        if !viewModel.multiCityItineraries.isEmpty {
-                            Section {
-                                ForEach(viewModel.multiCityItineraries) { multiCity in
-                                    Button(action: {
-                                        selectedMultiCity = multiCity
-                                        showMultiCityDetail = true
-                                    }) {
-                                        MultiCityItineraryCard(multiCity: multiCity)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                }
-                                .onDelete(perform: deleteMultiCityItineraries)
-                            } header: {
-                                HStack {
-                                    Image(systemName: "map.fill")
-                                    Text("Multi-City Trips")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.purple)
-                            }
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                        }
                         
                         // Single City Section
                         if !viewModel.itineraries.isEmpty {
@@ -84,17 +59,7 @@ struct ItineraryListView: View {
             .refreshable {
                 await viewModel.loadItineraries()
             }
-            .sheet(isPresented: $showMultiCityDetail) {
-                if let multiCity = selectedMultiCity {
-                    MultiCityResultView(multiCity: multiCity, onDismiss: {
-                        Task {
-                            await viewModel.loadItineraries()
-                        }
-                        showMultiCityDetail = false
-                        selectedMultiCity = nil
-                    })
-                }
-            }
+     
         }
     }
     

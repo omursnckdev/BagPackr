@@ -110,20 +110,7 @@ struct GroupPlansView: View {
     // MARK: - Group List
     private var groupListView: some View {
         List {
-            // ✅ Multi-city groups section
-            if !viewModel.multiCityGroupPlans.isEmpty {
-                Section(header: sectionHeader(title: "Multi-City Groups", icon: "map.fill", color: .blue)) {
-                    ForEach(viewModel.multiCityGroupPlans) { group in
-                        NavigationLink(destination: MultiCityGroupDetailView(group: group)) {
-                            MultiCityGroupPlanRow(group: group)
-                        }
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                    .onDelete(perform: deleteMultiCityGroups)
-                }
-            }
+   
             
             // ✅ Regular groups section
             if !viewModel.groupPlans.isEmpty {

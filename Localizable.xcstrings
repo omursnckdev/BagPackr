@@ -56,9 +56,6 @@
     "%lld members" : {
 
     },
-    "%lld plans left" : {
-
-    },
     "%lld/%lld" : {
       "localizations" : {
         "en" : {
@@ -219,9 +216,6 @@
         }
       }
     },
-    "Add at least 2 cities to create a multi-city trip" : {
-
-    },
     "Add City" : {
 
     },
@@ -334,9 +328,6 @@
         }
       }
     },
-    "Are you sure you want to delete this multi-city trip? This action cannot be undone." : {
-
-    },
     "Are you sure you want to sign out?" : {
       "localizations" : {
         "tr" : {
@@ -391,9 +382,6 @@
           }
         }
       }
-    },
-    "Bu çok şehirli geziyi silmek istediğine emin misin? Bu işlem geri alınamaz." : {
-
     },
     "Budget" : {
       "localizations" : {
@@ -480,12 +468,6 @@
         }
       }
     },
-    "Cities" : {
-
-    },
-    "Cities (%lld)" : {
-
-    },
     "City" : {
 
     },
@@ -498,9 +480,6 @@
           }
         }
       }
-    },
-    "Çok Şehirli Gezi" : {
-
     },
     "Collaborate with friends" : {
       "extractionState" : "manual",
@@ -712,9 +691,6 @@
         }
       }
     },
-    "Delete Trip" : {
-
-    },
     "Deleting account..." : {
       "localizations" : {
         "tr" : {
@@ -764,9 +740,6 @@
           }
         }
       }
-    },
-    "e.g., Europe Adventure" : {
-
     },
     "e.g., Temple, Sushi, Kebab" : {
       "localizations" : {
@@ -911,12 +884,6 @@
         }
       }
     },
-    "Generate Multi-City Trip" : {
-
-    },
-    "Generating..." : {
-
-    },
     "gets back %@%@" : {
       "localizations" : {
         "en" : {
@@ -937,9 +904,6 @@
           }
         }
       }
-    },
-    "Geziyi Sil" : {
-
     },
     "Google Maps" : {
 
@@ -1015,9 +979,6 @@
           }
         }
       }
-    },
-    "Interests" : {
-
     },
     "Invite Member" : {
       "localizations" : {
@@ -1176,15 +1137,6 @@
       }
     },
     "MOST POPULAR" : {
-
-    },
-    "Multi-City" : {
-
-    },
-    "Multi-City Trip" : {
-
-    },
-    "Multi-City Trips" : {
 
     },
     "Museums" : {
@@ -1372,9 +1324,6 @@
         }
       }
     },
-    "Plan Limit Reached" : {
-
-    },
     "Plan your perfect journey" : {
       "localizations" : {
         "tr" : {
@@ -1384,9 +1333,6 @@
           }
         }
       }
-    },
-    "Premium Member" : {
-
     },
     "Profile" : {
       "localizations" : {
@@ -1448,9 +1394,6 @@
         }
       }
     },
-    "Resets in %@" : {
-
-    },
     "Restaurants" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1494,9 +1437,6 @@
           }
         }
       }
-    },
-    "Şehirler" : {
-
     },
     "Select All" : {
       "localizations" : {
@@ -1639,9 +1579,6 @@
         }
       }
     },
-    "Sil" : {
-
-    },
     "Single City Trips" : {
 
     },
@@ -1767,13 +1704,7 @@
         }
       }
     },
-    "Total Trip:" : {
-
-    },
     "Total:" : {
-
-    },
-    "Total: %lld days" : {
 
     },
     "Total: $%lld" : {
@@ -1818,9 +1749,6 @@
         }
       }
     },
-    "Trip Title" : {
-
-    },
     "Trip: %@" : {
       "localizations" : {
         "tr" : {
@@ -1831,19 +1759,10 @@
         }
       }
     },
-    "Unlimited plans" : {
-
-    },
     "Unlock unlimited travel planning" : {
 
     },
-    "Upgrade" : {
-
-    },
     "Upgrade to Premium" : {
-
-    },
-    "Vazgeç" : {
 
     },
     "Verify Details" : {
@@ -1867,9 +1786,6 @@
         }
       }
     },
-    "Wait" : {
-
-    },
     "Water Sports" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1890,9 +1806,6 @@
           }
         }
       }
-    },
-    "You've reached your free plan limit. Next reset in %@" : {
-
     },
     "Your Itinerary" : {
       "localizations" : {

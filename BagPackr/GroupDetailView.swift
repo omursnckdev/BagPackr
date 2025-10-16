@@ -59,11 +59,13 @@ struct GroupDetailView: View {
                 ItineraryTabView(group: currentGroup)
                     .tag(0)
                 
+                
                 MembersTabView(
-                    group: currentGroup,
+                    group: refreshedGroup ?? group,
                     isOwner: isOwner,
                     onMemberRemoved: { await refreshGroup() }
                 )
+
                 .tag(1)
                 
                 ExpensesTabView(

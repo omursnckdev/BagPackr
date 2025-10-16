@@ -143,10 +143,6 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Create", systemImage: "plus.circle.fill")
                 }
-            MultiCityPlannerView(itineraryListViewModel: itineraryListViewModel)
-                .tabItem {
-                    Label("Multi-City", systemImage: "map.fill")
-                }
             
             ItineraryListView(viewModel: itineraryListViewModel)
                 .tabItem {
