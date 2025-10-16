@@ -53,9 +53,6 @@
     "%lld days" : {
 
     },
-    "%lld days total" : {
-
-    },
     "%lld members" : {
 
     },
@@ -395,6 +392,9 @@
         }
       }
     },
+    "Bu çok şehirli geziyi silmek istediğine emin misin? Bu işlem geri alınamaz." : {
+
+    },
     "Budget" : {
       "localizations" : {
         "tr" : {
@@ -480,6 +480,9 @@
         }
       }
     },
+    "Cities" : {
+
+    },
     "Cities (%lld)" : {
 
     },
@@ -495,6 +498,9 @@
           }
         }
       }
+    },
+    "Çok Şehirli Gezi" : {
+
     },
     "Collaborate with friends" : {
       "extractionState" : "manual",
@@ -749,9 +755,6 @@
         }
       }
     },
-    "Done" : {
-
-    },
     "Duration" : {
       "localizations" : {
         "tr" : {
@@ -934,6 +937,9 @@
           }
         }
       }
+    },
+    "Geziyi Sil" : {
+
     },
     "Google Maps" : {
 
@@ -1169,9 +1175,6 @@
         }
       }
     },
-    "Members (%lld)" : {
-
-    },
     "MOST POPULAR" : {
 
     },
@@ -1327,9 +1330,6 @@
           }
         }
       }
-    },
-    "OWNER" : {
-
     },
     "Paid By" : {
       "localizations" : {
@@ -1495,6 +1495,9 @@
         }
       }
     },
+    "Şehirler" : {
+
+    },
     "Select All" : {
       "localizations" : {
         "tr" : {
@@ -1635,6 +1638,9 @@
           }
         }
       }
+    },
+    "Sil" : {
+
     },
     "Single City Trips" : {
 
@@ -1835,6 +1841,9 @@
 
     },
     "Upgrade to Premium" : {
+
+    },
+    "Vazgeç" : {
 
     },
     "Verify Details" : {
