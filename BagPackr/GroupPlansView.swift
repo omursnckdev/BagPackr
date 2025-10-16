@@ -3,7 +3,7 @@
 //  BagPackr
 //
 //  Created by Ömür Şenocak on 16.10.2025.
-//
+
 
 import SwiftUI
 
@@ -13,17 +13,23 @@ struct GroupPlansView: View {
     @State private var showCreateGroup = false
     @State private var showDeleteAlert = false
     @State private var groupToDelete: GroupPlan?
+    @State private var multiCityGroupToDelete: MultiCityGroupPlan?
+    
+    // ✅ Computed property - tüm grupları kontrol et
+    private var isEmpty: Bool {
+        viewModel.groupPlans.isEmpty && viewModel.multiCityGroupPlans.isEmpty
+    }
     
     var body: some View {
         NavigationView {
             ZStack {
-                if viewModel.groupPlans.isEmpty {
+                if isEmpty { // ✅ isEmpty kullan
                     emptyStateView
                 } else {
                     groupListView
                 }
             }
-            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.groupPlans.count)
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isEmpty) // ✅ isEmpty'e göre
             .navigationTitle("Group Plans")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -41,6 +47,8 @@ struct GroupPlansView: View {
                 Button("Delete", role: .destructive) {
                     if let group = groupToDelete {
                         deleteGroup(group)
+                    } else if let multiGroup = multiCityGroupToDelete {
+                        deleteMultiCityGroup(multiGroup)
                     }
                 }
             } message: {
@@ -102,24 +110,9 @@ struct GroupPlansView: View {
     // MARK: - Group List
     private var groupListView: some View {
         List {
-            // Regular groups
-            if !viewModel.groupPlans.isEmpty {
-                Section(header: Text("Single City Groups")) {
-                    ForEach(viewModel.groupPlans) { group in
-                        NavigationLink(destination: GroupDetailView(group: group)) {
-                            GroupPlanRow(group: group)
-                        }
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                    .onDelete(perform: deleteGroups)
-                }
-            }
-            
-            // ✅ Multi-city groups
+            // ✅ Multi-city groups section
             if !viewModel.multiCityGroupPlans.isEmpty {
-                Section(header: Text("Multi-City Groups")) {
+                Section(header: sectionHeader(title: "Multi-City Groups", icon: "map.fill", color: .blue)) {
                     ForEach(viewModel.multiCityGroupPlans) { group in
                         NavigationLink(destination: MultiCityGroupDetailView(group: group)) {
                             MultiCityGroupPlanRow(group: group)
@@ -131,24 +124,48 @@ struct GroupPlansView: View {
                     .onDelete(perform: deleteMultiCityGroups)
                 }
             }
+            
+            // ✅ Regular groups section
+            if !viewModel.groupPlans.isEmpty {
+                Section(header: sectionHeader(title: "Single City Groups", icon: "person.3.fill", color: .purple)) {
+                    ForEach(viewModel.groupPlans) { group in
+                        NavigationLink(destination: GroupDetailView(group: group)) {
+                            GroupPlanRow(group: group)
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                    }
+                    .onDelete(perform: deleteGroups)
+                }
+            }
         }
         .listStyle(.plain)
         .background(Color(.systemGroupedBackground))
+        .transition(.opacity.combined(with: .scale))
     }
-
-    private func deleteMultiCityGroups(at offsets: IndexSet) {
-        for index in offsets {
-            let group = viewModel.multiCityGroupPlans[index]
-            Task {
-                try? await FirestoreService.shared.deleteMultiCityGroup(group.id)
-            }
+    
+    // ✅ Section header helper
+    private func sectionHeader(title: String, icon: String, color: Color) -> some View {
+        HStack {
+            Image(systemName: icon)
+            Text(title)
         }
+        .font(.headline)
+        .foregroundColor(color)
     }
     
     // MARK: - Delete Actions
     private func deleteGroups(at offsets: IndexSet) {
         for index in offsets {
             groupToDelete = viewModel.groupPlans[index]
+            showDeleteAlert = true
+        }
+    }
+    
+    private func deleteMultiCityGroups(at offsets: IndexSet) {
+        for index in offsets {
+            multiCityGroupToDelete = viewModel.multiCityGroupPlans[index]
             showDeleteAlert = true
         }
     }
@@ -163,12 +180,18 @@ struct GroupPlansView: View {
             }
         }
     }
-}
-
-
-// MARK: - Preview
-struct GroupPlansView_Previews: PreviewProvider {
-    static var previews: some View {
-        GroupPlansView()
+    
+    private func deleteMultiCityGroup(_ group: MultiCityGroupPlan) {
+        Task {
+            do {
+                try await FirestoreService.shared.deleteMultiCityGroup(group.id)
+                print("✅ Multi-city group deleted successfully")
+            } catch {
+                print("❌ Error deleting multi-city group: \(error)")
+            }
+        }
     }
 }
+
+
+

@@ -1178,9 +1178,6 @@
     "Multi-City" : {
 
     },
-    "Multi-City Groups" : {
-
-    },
     "Multi-City Trip" : {
 
     },
@@ -1638,9 +1635,6 @@
           }
         }
       }
-    },
-    "Single City Groups" : {
-
     },
     "Single City Trips" : {
 
