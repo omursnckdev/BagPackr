@@ -4,7 +4,6 @@
 //
 //  Created by Ömür Şenocak on 16.10.2025.
 
-
 import SwiftUI
 
 // MARK: - Group Plans View
@@ -15,7 +14,6 @@ struct GroupPlansView: View {
     @State private var groupToDelete: GroupPlan?
     @State private var multiCityGroupToDelete: MultiCityGroupPlan?
     
-    // ✅ Computed property - tüm grupları kontrol et
     private var isEmpty: Bool {
         viewModel.groupPlans.isEmpty && viewModel.multiCityGroupPlans.isEmpty
     }
@@ -23,13 +21,13 @@ struct GroupPlansView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                if isEmpty { // ✅ isEmpty kullan
+                if isEmpty {
                     emptyStateView
                 } else {
                     groupListView
                 }
             }
-            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isEmpty) // ✅ isEmpty'e göre
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isEmpty)
             .navigationTitle("Group Plans")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -42,8 +40,12 @@ struct GroupPlansView: View {
             .sheet(isPresented: $showCreateGroup) {
                 CreateGroupView(viewModel: viewModel)
             }
+            // ✅ Alert eklendi
             .alert("Delete Group", isPresented: $showDeleteAlert) {
-                Button("Cancel", role: .cancel) { }
+                Button("Cancel", role: .cancel) {
+                    groupToDelete = nil
+                    multiCityGroupToDelete = nil
+                }
                 Button("Delete", role: .destructive) {
                     if let group = groupToDelete {
                         deleteGroup(group)
@@ -110,7 +112,7 @@ struct GroupPlansView: View {
     // MARK: - Group List
     private var groupListView: some View {
         List {
-            // ✅ Multi-city groups section
+            // ✅ Multi-city groups section eklendi
             if !viewModel.multiCityGroupPlans.isEmpty {
                 Section(header: sectionHeader(title: "Multi-City Groups", icon: "map.fill", color: .blue)) {
                     ForEach(viewModel.multiCityGroupPlans) { group in
@@ -192,6 +194,3 @@ struct GroupPlansView: View {
         }
     }
 }
-
-
-

@@ -11,11 +11,11 @@ struct CreateItineraryView: View {
     
     @StateObject private var viewModel = CreateItineraryViewModel()
     @ObservedObject var itineraryListViewModel: ItineraryListViewModel
-    @StateObject private var adManager = AdManager.shared // ✅ Eklendi
+    @StateObject private var adManager = AdManager.shared
     @State private var showMapPicker = false
-    @State private var isWaitingForAd = false // ✅ Zaten var
+    @State private var isWaitingForAd = false
     
-    // Add these computed properties
+    // Locale-based values
     private var minBudget: Double {
         Locale.current.language.languageCode?.identifier == "tr" ? 1000 : 50
     }
@@ -36,7 +36,10 @@ struct CreateItineraryView: View {
         Locale.current.language.languageCode?.identifier == "tr" ? "₺30000" : "$1000"
     }
     
-    // ✅ Güncellenmiş button styling
+    private var currencySymbol: String {
+        Locale.current.language.languageCode?.identifier == "tr" ? "₺" : "$"
+    }
+    
     private var buttonGradientColors: [Color] {
         if isWaitingForAd || viewModel.isGenerating {
             return [Color.gray, Color.gray]
@@ -75,7 +78,7 @@ struct CreateItineraryView: View {
                     .padding()
                 }
                 .onTapGesture {
-                    hideKeyboard()
+                    dismissKeyboard()
                 }
             }
             .navigationTitle("Create Itinerary")
@@ -164,10 +167,6 @@ struct CreateItineraryView: View {
                 }
             }
         }
-    }
-    
-    private var currencySymbol: String {
-        Locale.current.language.languageCode?.identifier == "tr" ? "₺" : "$"
     }
     
     @State private var budgetText: String = ""
@@ -338,7 +337,6 @@ struct CreateItineraryView: View {
         }
     }
     
-    // ✅ Güncellenmiş generate button
     private var generateButton: some View {
         Button(action: handleGenerateButtonTap) {
             buttonContent
@@ -355,11 +353,10 @@ struct CreateItineraryView: View {
                 .cornerRadius(15)
                 .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
         }
-        .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd) // ✅ isWaitingForAd eklendi
+        .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd)
         .padding(.horizontal)
     }
     
-    // ✅ Güncellenmiş button content
     @ViewBuilder
     private var buttonContent: some View {
         HStack {
@@ -385,34 +382,27 @@ struct CreateItineraryView: View {
     
     // MARK: - Actions
     
-    // ✅ Düzeltilmiş fonksiyon
     private func handleGenerateButtonTap() {
         Task {
-            // 1. İşlemi başlat
             viewModel.generateItinerary(itineraryListViewModel: itineraryListViewModel)
-            
-            // 2. Reklamı bekle ve göster
             await waitForAdAndShow()
         }
     }
     
-    // ✅ Yeni fonksiyon: Reklamı bekle ve göster
     private func waitForAdAndShow() async {
-        let maxWaitTime: TimeInterval = 4.0 // Maksimum 4 saniye bekle
-        let checkInterval: TimeInterval = 0.2 // Her 200ms kontrol et
+        let maxWaitTime: TimeInterval = 4.0
+        let checkInterval: TimeInterval = 0.2
         var elapsed: TimeInterval = 0.0
         
-        // Reklam zaten hazırsa direkt göster
         if adManager.isAdReady {
             print("✅ Ad already ready, showing immediately")
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 saniye bekle
+            try? await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run {
                 AdManager.shared.showAd()
             }
             return
         }
         
-        // Reklam hazır değilse bekle
         await MainActor.run {
             isWaitingForAd = true
         }
@@ -427,7 +417,6 @@ struct CreateItineraryView: View {
             isWaitingForAd = false
         }
         
-        // Reklamı göster
         await MainActor.run {
             if adManager.isAdReady {
                 print("✅ Ad loaded! Showing now...")
@@ -436,5 +425,16 @@ struct CreateItineraryView: View {
                 print("⏱️ Timeout: Ad couldn't load in \(maxWaitTime) seconds")
             }
         }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }

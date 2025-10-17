@@ -2,8 +2,6 @@
 //  MultiCityPlannerView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 
@@ -23,20 +21,11 @@ struct MultiCityPlannerView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Plan limit card
                         planLimitCard
-                        
-                        // Title input
                         titleCard
-                        
-                        // Cities list
                         citiesCard
-                        
-                        // Budget & Interests
                         budgetCard
                         interestsCard
-                        
-                        // Generate button
                         generateButton
                     }
                     .padding()
@@ -50,13 +39,13 @@ struct MultiCityPlannerView: View {
                 PremiumUpgradeView()
             }
             .sheet(item: $viewModel.generatedMultiCity) { multiCity in
-                     MultiCityResultView(
-                         multiCity: multiCity,
-                         onDismiss: {
-                             viewModel.resetForm()
-                         }
-                     )
-                 }
+                MultiCityResultView(
+                    multiCity: multiCity,
+                    onDismiss: {
+                        viewModel.resetForm()
+                    }
+                )
+            }
             .alert("Plan Limit Reached", isPresented: $showLimitWarning) {
                 Button("Upgrade to Premium") {
                     showPremiumSheet = true
@@ -65,12 +54,11 @@ struct MultiCityPlannerView: View {
             } message: {
                 Text("You've reached your free plan limit. Next reset in \(limitService.getTimeUntilReset())")
             }
-            // ✅ Error alert eklendi
-                  .alert("Error", isPresented: $viewModel.showError) {
-                      Button("OK", role: .cancel) { }
-                  } message: {
-                      Text(viewModel.errorMessage)
-                  }
+            .alert("Error", isPresented: $viewModel.showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(viewModel.errorMessage)
+            }
         }
     }
     
@@ -163,7 +151,6 @@ struct MultiCityPlannerView: View {
                     
                     Spacer()
                     
-                    // ✅ ADD CITY BUTTON
                     Button(action: { showAddCity = true }) {
                         HStack(spacing: 4) {
                             Image(systemName: "plus.circle.fill")
@@ -243,7 +230,7 @@ struct MultiCityPlannerView: View {
                     }
                 }
                 
-                Slider(value: $viewModel.budgetPerDay, in: 50...1000, step: 10)
+                Slider(value: $viewModel.budgetPerDay, in: 1000...30000, step: 10)
                     .accentColor(.green)
             }
         }
@@ -299,7 +286,6 @@ struct MultiCityPlannerView: View {
     }
     
     private func handleGenerate() {
-        // Check limit
         if !limitService.canGeneratePlan() {
             showLimitWarning = true
             return
@@ -307,14 +293,12 @@ struct MultiCityPlannerView: View {
         
         Task {
             await viewModel.generateMultiCityTrip()
-            
-            // Increment plan count
             try? await limitService.incrementPlanCount()
         }
     }
 }
 
-// MARK: - City Stop Row
+// MARK: - City Stop Row Component
 struct CityStopRow: View {
     let stop: CityStop
     let index: Int
@@ -322,7 +306,6 @@ struct CityStopRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Order number
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.2))
@@ -344,7 +327,6 @@ struct CityStopRow: View {
             
             Spacer()
             
-            // Remove button
             Button(action: onRemove) {
                 Image(systemName: "trash.circle.fill")
                     .font(.title2)

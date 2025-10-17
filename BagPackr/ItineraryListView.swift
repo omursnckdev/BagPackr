@@ -2,18 +2,12 @@
 //  ItineraryListView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
-
-// Views/ItineraryListView.swift
 import SwiftUI
 import FirebaseAuth
 
 struct ItineraryListView: View {
     @ObservedObject var viewModel: ItineraryListViewModel
-    @State private var showMultiCityDetail = false
-    @State private var selectedMultiCity: MultiCityItinerary?
     
     var body: some View {
         NavigationView {
@@ -22,17 +16,13 @@ struct ItineraryListView: View {
                     emptyStateView
                 } else {
                     List {
-                        // Multi-City Section
+                        // ✅ Multi-City Section - NavigationLink ile
                         if !viewModel.multiCityItineraries.isEmpty {
                             Section {
                                 ForEach(viewModel.multiCityItineraries) { multiCity in
-                                    Button(action: {
-                                        selectedMultiCity = multiCity
-                                        showMultiCityDetail = true
-                                    }) {
+                                    NavigationLink(destination: MultiCityDetailView(multiCity: multiCity, viewModel: viewModel)) {
                                         MultiCityItineraryCard(multiCity: multiCity)
                                     }
-                                    .buttonStyle(PlainButtonStyle())
                                 }
                                 .onDelete(perform: deleteMultiCityItineraries)
                             } header: {
@@ -70,7 +60,6 @@ struct ItineraryListView: View {
                             .listRowBackground(Color.clear)
                         }
                     }
-                    .id(UUID())
                     .listStyle(.plain)
                     .background(Color(.systemGroupedBackground))
                 }
@@ -83,17 +72,6 @@ struct ItineraryListView: View {
             }
             .refreshable {
                 await viewModel.loadItineraries()
-            }
-            .sheet(isPresented: $showMultiCityDetail) {
-                if let multiCity = selectedMultiCity {
-                    MultiCityResultView(multiCity: multiCity, onDismiss: {
-                        Task {
-                            await viewModel.loadItineraries()
-                        }
-                        showMultiCityDetail = false
-                        selectedMultiCity = nil
-                    })
-                }
             }
         }
     }

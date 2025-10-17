@@ -2,18 +2,14 @@
 //  MultiCityItineraryCard.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 
-// MARK: - Multi-City Itinerary Card
 struct MultiCityItineraryCard: View {
     let multiCity: MultiCityItinerary
     
     var body: some View {
         HStack(spacing: 15) {
-            // Icon
             ZStack {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
@@ -42,38 +38,26 @@ struct MultiCityItineraryCard: View {
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
-                    Label(
-                        "\(multiCity.citiesCount) cities",
-                        systemImage: "mappin.and.ellipse"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    
-                    Text("•")
+                    Label("\(multiCity.citiesCount) cities", systemImage: "mappin.and.ellipse")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Label(
-                        "\(multiCity.totalDuration) days",
-                        systemImage: "calendar"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    Text("•").foregroundColor(.secondary)
                     
-                    Text("•")
+                    Label("\(multiCity.totalDuration) days", systemImage: "calendar")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Label(
-                        "$\(Int(multiCity.totalBudget))",
-                        systemImage: "dollarsign.circle"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.green)
+                    Text("•").foregroundColor(.secondary)
+                    
+                    Label("$\(Int(multiCity.totalBudget))", systemImage: "dollarsign.circle")
+                        .font(.caption)
+                        .foregroundColor(.green)
                 }
                 
-                // Interests chips
                 FlexibleChipLayout(spacing: 6) {
                     ForEach(multiCity.interests.prefix(3), id: \.self) { interest in
-                        Text(NSLocalizedString(interest, comment: "Interest category"))
+                        Text(NSLocalizedString(interest, comment: ""))
                             .font(.caption)
                             .lineLimit(1)
                             .padding(.horizontal, 10)

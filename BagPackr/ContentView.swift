@@ -140,13 +140,13 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             CreateItineraryView(itineraryListViewModel: itineraryListViewModel)
-                .tabItem {
-                    Label("Create", systemImage: "plus.circle.fill")
-                }
+                         .tabItem {
+                             Label("Create", systemImage: "plus.circle.fill")
+                         }
             MultiCityPlannerView(itineraryListViewModel: itineraryListViewModel)
-                .tabItem {
-                    Label("Multi-City", systemImage: "map.fill")
-                }
+                        .tabItem {
+                            Label("Multi-City", systemImage: "map.fill")
+                        }
             
             ItineraryListView(viewModel: itineraryListViewModel)
                 .tabItem {
@@ -170,10 +170,7 @@ struct MainTabView: View {
 // MARK: - Create Itinerary View
 
 extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                        to: nil, from: nil, for: nil)
-    }
+  
 }
 
 struct ModernCard<Content: View>: View {
@@ -399,23 +396,118 @@ class FirestoreService {
         try await db.collection("itineraries").document(itinerary.id).setData(data)
     }
     
+    
+    // FirestoreService içine:
+
+ 
     func fetchItineraries() async throws -> [Itinerary] {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            return []
-        }
-        
+        guard let userId = Auth.auth().currentUser?.uid else { return [] }
+
         let snapshot = try await db.collection("itineraries")
             .whereField("userId", isEqualTo: userId)
             .getDocuments()
-        
+
         let decoder = Firestore.Decoder()
-        let itineraries = try snapshot.documents.compactMap { doc in
-            try decoder.decode(Itinerary.self, from: doc.data())
+
+        // Inject the Firestore document ID, then decode
+        let itineraries: [Itinerary] = snapshot.documents.compactMap { doc in
+            var data = doc.data()
+            data["id"] = doc.documentID
+            do {
+                return try decoder.decode(Itinerary.self, from: data)
+            } catch {
+                print("⚠️ Skipping malformed itinerary \(doc.documentID): \(error)")
+                return nil
+            }
         }
-        
+
         return itineraries.sorted { $0.createdAt > $1.createdAt }
     }
-    // FirestoreService içine:
+
+    func loadItineraries(userId: String) async throws -> [Itinerary] {
+        let snapshot = try await db.collection("itineraries")
+            .whereField("userId", isEqualTo: userId)
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+
+        let decoder = Firestore.Decoder()
+
+        let itineraries: [Itinerary] = snapshot.documents.compactMap { doc in
+            var data = doc.data()
+            data["id"] = doc.documentID
+            do {
+                return try decoder.decode(Itinerary.self, from: data)
+            } catch {
+                print("⚠️ Skipping malformed itinerary \(doc.documentID): \(error)")
+                return nil
+            }
+        }
+
+        return itineraries
+    }
+
+    
+    
+    func deleteItinerary(_ id: String) async throws {
+        try await db.collection("itineraries").document(id).delete()
+    }
+    
+    func updateItinerary(_ itinerary: Itinerary) async throws {
+        let encoder = Firestore.Encoder()
+        let data = try encoder.encode(itinerary)
+        try await db.collection("itineraries").document(itinerary.id).setData(data)
+    }
+    
+    // MARK: - Progress Tracking
+    func updateItineraryProgress(itineraryId: String, dayId: String, completedActivities: [String]) async throws {
+        try await db.collection("itineraries")
+            .document(itineraryId)
+            .collection("progress")
+            .document(dayId)
+            .setData(["completedActivities": completedActivities])
+    }
+    
+    
+    // MARK: - Multi-City Itinerary Methods (FirestoreService içine ekleyin)
+
+    func saveMultiCityItinerary(_ multiCity: MultiCityItinerary) async throws {
+        let docRef = db.collection("multiCityItineraries").document(multiCity.id)
+        try docRef.setData(from: multiCity)
+        print("✅ Multi-city itinerary saved: \(multiCity.id)")
+    }
+
+    func loadMultiCityItineraries(userId: String) async throws -> [MultiCityItinerary] {
+        let snapshot = try await db.collection("multiCityItineraries")
+            .whereField("userId", isEqualTo: userId)
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        let itineraries = snapshot.documents.compactMap { doc -> MultiCityItinerary? in
+            try? doc.data(as: MultiCityItinerary.self)
+        }
+        
+        print("✅ Loaded \(itineraries.count) multi-city itineraries")
+        return itineraries
+    }
+
+    func updateMultiCityItinerary(_ multiCity: MultiCityItinerary) async throws {
+        let docRef = db.collection("multiCityItineraries").document(multiCity.id)
+        try docRef.setData(from: multiCity, merge: true)
+        print("✅ Multi-city itinerary updated: \(multiCity.id)")
+    }
+
+    func deleteMultiCityItinerary(_ id: String) async throws {
+        try await db.collection("multiCityItineraries").document(id).delete()
+        print("✅ Multi-city itinerary deleted: \(id)")
+    }
+
+    func getMultiCityItinerary(_ id: String) async throws -> MultiCityItinerary? {
+        let docRef = db.collection("multiCityItineraries").document(id)
+        let snapshot = try await docRef.getDocument()
+        return try? snapshot.data(as: MultiCityItinerary.self)
+    }
+
+    // MARK: - Multi-City Group Methods
 
     func createMultiCityGroupPlan(name: String, multiCity: MultiCityItinerary, memberEmails: [String]) async throws {
         guard let currentUserEmail = Auth.auth().currentUser?.email else {
@@ -467,37 +559,6 @@ class FirestoreService {
 
     func deleteMultiCityGroup(_ id: String) async throws {
         try await db.collection("multiCityGroupPlans").document(id).delete()
-    }
-    // ✅ Bu metodu ekleyin (ViewModel için)
-    func loadItineraries(userId: String) async throws -> [Itinerary] {
-        let snapshot = try await db.collection("itineraries")
-            .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
-            .getDocuments()
-        
-        let decoder = Firestore.Decoder()
-        return try snapshot.documents.compactMap { doc in
-            try decoder.decode(Itinerary.self, from: doc.data())
-        }
-    }
-    
-    func deleteItinerary(_ id: String) async throws {
-        try await db.collection("itineraries").document(id).delete()
-    }
-    
-    func updateItinerary(_ itinerary: Itinerary) async throws {
-        let encoder = Firestore.Encoder()
-        let data = try encoder.encode(itinerary)
-        try await db.collection("itineraries").document(itinerary.id).setData(data)
-    }
-    
-    // MARK: - Progress Tracking
-    func updateItineraryProgress(itineraryId: String, dayId: String, completedActivities: [String]) async throws {
-        try await db.collection("itineraries")
-            .document(itineraryId)
-            .collection("progress")
-            .document(dayId)
-            .setData(["completedActivities": completedActivities])
     }
     
     func getItineraryProgress(itineraryId: String, dayId: String) async throws -> [String] {
@@ -553,44 +614,8 @@ class FirestoreService {
         }
     }
     
-    // MARK: - Multi-City Itinerary Methods
 
-    func saveMultiCityItinerary(_ multiCity: MultiCityItinerary) async throws {
-        let docRef = db.collection("multiCityItineraries").document(multiCity.id)
-        try docRef.setData(from: multiCity)
-        print("✅ Multi-city itinerary saved: \(multiCity.id)")
-    }
-
-    func loadMultiCityItineraries(userId: String) async throws -> [MultiCityItinerary] {
-        let snapshot = try await db.collection("multiCityItineraries")
-            .whereField("userId", isEqualTo: userId)
-            .order(by: "createdAt", descending: true)
-            .getDocuments()
-        
-        let itineraries = snapshot.documents.compactMap { doc -> MultiCityItinerary? in
-            try? doc.data(as: MultiCityItinerary.self)
-        }
-        
-        print("✅ Loaded \(itineraries.count) multi-city itineraries")
-        return itineraries
-    }
-
-    func updateMultiCityItinerary(_ multiCity: MultiCityItinerary) async throws {
-        let docRef = db.collection("multiCityItineraries").document(multiCity.id)
-        try docRef.setData(from: multiCity, merge: true)
-        print("✅ Multi-city itinerary updated: \(multiCity.id)")
-    }
-
-    func deleteMultiCityItinerary(_ id: String) async throws {
-        try await db.collection("multiCityItineraries").document(id).delete()
-        print("✅ Multi-city itinerary deleted: \(id)")
-    }
-
-    func getMultiCityItinerary(_ id: String) async throws -> MultiCityItinerary? {
-        let docRef = db.collection("multiCityItineraries").document(id)
-        let snapshot = try await docRef.getDocument()
-        return try? snapshot.data(as: MultiCityItinerary.self)
-    }
+    
 
     // MARK: - User Premium Methods
 
@@ -889,6 +914,11 @@ class FirestoreService {
         
         return listener
     }
+    
+    
+    
+    
+
     
     /// Listen to a specific group in real-time
     func listenToGroup(groupId: String, completion: @escaping (GroupPlan?) -> Void) -> ListenerRegistration {

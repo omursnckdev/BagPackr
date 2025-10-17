@@ -1,19 +1,19 @@
 //
-//  MultiCityResultView.swift
+//  MultiCityDetailView.swift
 //  BagPackr
 //
 
 import SwiftUI
 
-struct MultiCityResultView: View {
-    @Environment(\.dismiss) var dismiss
+struct MultiCityDetailView: View {
     let multiCity: MultiCityItinerary
-    let onDismiss: () -> Void
-
+    @ObservedObject var viewModel: ItineraryListViewModel
+    
     @State private var selectedCityIndex = 0
     @State private var showDeleteAlert = false
     @State private var showShareSheet = false
     @State private var shareText = ""
+    @Environment(\.dismiss) var dismiss
 
     private var selectedCity: CityStop? {
         multiCity.cityStops[safe: selectedCityIndex]
@@ -44,63 +44,52 @@ struct MultiCityResultView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    mainHeaderCard
-                    cityTabsSection
-                    
-                    if let city = selectedCity {
-                        cityHeaderCard(for: city)
-                    }
-                    
-                    actionButtons
-                    
-                    if let itinerary = selectedItinerary {
-                        ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
-                            EnhancedDayPlanCard(
-                                dayNumber: index + 1,
-                                plan: plan,
-                                location: selectedCity?.location.name ?? "",
-                                itinerary: itinerary
-                            )
-                        }
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                mainHeaderCard
+                cityTabsSection
+                
+                if let city = selectedCity {
+                    cityHeaderCard(for: city)
                 }
-                .padding(.vertical)
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(isTR ? "Çok Şehirli Gezi" : "Multi-City Trip")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        onDismiss()
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundColor(.gray)
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: shareTrip) {
-                        Image(systemName: "square.and.arrow.up")
+                
+                actionButtons
+                
+                if let itinerary = selectedItinerary {
+                    ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
+                        EnhancedDayPlanCard(
+                            dayNumber: index + 1,
+                            plan: plan,
+                            location: selectedCity?.location.name ?? "",
+                            itinerary: itinerary
+                        )
                     }
                 }
             }
-            .alert(isTR ? "Geziyi Sil" : "Delete Trip", isPresented: $showDeleteAlert) {
-                Button(isTR ? "Vazgeç" : "Cancel", role: .cancel) { }
-                Button(isTR ? "Sil" : "Delete", role: .destructive) {
-                    deleteTrip()
+            .padding(.vertical)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(multiCity.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: shareTrip) {
+                    Image(systemName: "square.and.arrow.up")
                 }
-            } message: {
-                Text(isTR
-                     ? "Bu çok şehirli geziyi silmek istediğine emin misin?"
-                     : "Are you sure you want to delete this multi-city trip?")
             }
-            .sheet(isPresented: $showShareSheet) {
-                ShareSheet(items: [shareText])
+        }
+        .alert(isTR ? "Geziyi Sil" : "Delete Trip", isPresented: $showDeleteAlert) {
+            Button(isTR ? "Vazgeç" : "Cancel", role: .cancel) { }
+            Button(isTR ? "Sil" : "Delete", role: .destructive) {
+                deleteTrip()
             }
+        } message: {
+            Text(isTR
+                 ? "Bu çok şehirli geziyi silmek istediğine emin misin?"
+                 : "Are you sure you want to delete this multi-city trip?")
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [shareText])
         }
     }
     
@@ -250,7 +239,7 @@ struct MultiCityResultView: View {
     private func deleteTrip() {
         Task {
             try? await FirestoreService.shared.deleteMultiCityItinerary(multiCity.id)
-            onDismiss()
+            await viewModel.loadItineraries()
             dismiss()
         }
     }
@@ -276,52 +265,5 @@ struct MultiCityResultView: View {
 
         text += "Created with BagPckr ✈️"
         return text
-    }
-}
-
-// MARK: - City Tab Component
-struct CityTab: View {
-    let city: CityStop
-    let index: Int
-    let isSelected: Bool
-    let daysLabel: String
-
-    var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? Color.white : Color.white.opacity(0.3))
-                        .frame(width: 24, height: 24)
-
-                    Text("\(index)")
-                        .font(.caption).fontWeight(.semibold)
-                        .foregroundColor(isSelected ? .blue : .white)
-                }
-
-                Text(city.location.name)
-                    .font(.subheadline)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                    .lineLimit(1)
-            }
-
-            Text("\(city.duration) \(daysLabel)")
-                .font(.caption2)
-                .opacity(0.85)
-        }
-        .foregroundColor(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(isSelected ? Color.blue : Color.gray.opacity(0.3))
-        )
-    }
-}
-
-// MARK: - Safe Array Access
-extension Array {
-    subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

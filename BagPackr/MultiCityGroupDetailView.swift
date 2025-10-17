@@ -2,8 +2,6 @@
 //  MultiCityGroupDetailView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 import FirebaseAuth
@@ -24,7 +22,6 @@ struct MultiCityGroupDetailView: View {
     
     @State private var expenses: [GroupExpense] = []
     @State private var groupListener: ListenerRegistration?
-    // @State private var expensesListener: ListenerRegistration? — for later if needed
     
     var currentGroup: MultiCityGroupPlan {
         refreshedGroup ?? group
@@ -50,22 +47,15 @@ struct MultiCityGroupDetailView: View {
             .padding()
             
             TabView(selection: $selectedTab) {
+                itineraryTab.tag(0)
                 
-                // MARK: - Itinerary Tab
-                itineraryTab
-                    .tag(0)
-                
-                // MARK: - Members Tab
                 MembersTabView(
                     group: convertToGroupPlan(currentGroup),
                     isOwner: isOwner,
-                    onMemberRemoved: {
-                        // Real-time listener handles UI refresh
-                    }
+                    onMemberRemoved: { }
                 )
                 .tag(1)
                 
-                // MARK: - Expenses Tab
                 ExpensesTabView(
                     groupId: currentGroup.id,
                     expenses: $expenses,
@@ -73,7 +63,6 @@ struct MultiCityGroupDetailView: View {
                 )
                 .tag(2)
                 
-                // MARK: - Balances Tab
                 BalancesTabView(
                     expenses: expenses,
                     members: currentGroup.members
@@ -113,9 +102,7 @@ struct MultiCityGroupDetailView: View {
             AddExpenseView(
                 groupId: currentGroup.id,
                 members: currentGroup.members,
-                onExpenseAdded: {
-                    // listener auto-refreshes
-                }
+                onExpenseAdded: { }
             )
         }
         .alert("Error", isPresented: $showError) {
@@ -123,26 +110,22 @@ struct MultiCityGroupDetailView: View {
         } message: {
             Text(errorMessage)
         }
-        .onAppear {
-            startListeners()
-        }
-        .onDisappear {
-            stopListeners()
-        }
+        .onAppear { startListeners() }
+        .onDisappear { stopListeners() }
     }
-    
-    // MARK: - Itinerary Tab Content
     private var itineraryTab: some View {
         VStack(spacing: 0) {
             cityTabs
-            
+
             ScrollView {
                 if let selectedCity = currentGroup.multiCityItinerary.cityStops[safe: selectedCityIndex],
                    let itinerary = currentGroup.multiCityItinerary.itineraries[selectedCity.id] {
-                    
+
                     VStack(spacing: 20) {
                         cityHeader(for: selectedCity)
-                        
+                            .frame(maxWidth: .infinity)   // ✅ match parent width
+                            .padding(.horizontal)
+
                         ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
                             EnhancedDayPlanCard(
                                 dayNumber: index + 1,
@@ -150,15 +133,21 @@ struct MultiCityGroupDetailView: View {
                                 location: selectedCity.location.name,
                                 itinerary: itinerary
                             )
+                            .frame(maxWidth: .infinity)   // ✅ match parent width
+                            .padding(.horizontal)
                         }
                     }
-                    .padding()
+                    .frame(maxWidth: .infinity)           // ✅ critical for equal sizing
+                    .padding(.top, 20)
                 }
             }
+            .frame(maxWidth: .infinity)                   // ✅ make scrollview take full width
         }
+        .frame(maxWidth: .infinity, alignment: .leading)   // ✅ this was missing
     }
+
+
     
-    // MARK: - City Tabs
     private var cityTabs: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -180,7 +169,6 @@ struct MultiCityGroupDetailView: View {
         .background(Color(.secondarySystemBackground))
     }
     
-    // MARK: - City Header
     private func cityHeader(for city: CityStop) -> some View {
         ZStack {
             LinearGradient(
@@ -191,11 +179,9 @@ struct MultiCityGroupDetailView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Image(systemName: "mappin.circle.fill")
-                        .font(.title2)
+                    Image(systemName: "mappin.circle.fill").font(.title2)
                     Text(city.location.name)
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(.title2).fontWeight(.bold)
                 }
                 
                 Label("\(city.duration) days", systemImage: "calendar")
@@ -207,7 +193,6 @@ struct MultiCityGroupDetailView: View {
         .cornerRadius(20)
     }
     
-    // MARK: - Firestore Listeners
     private func startListeners() {
         groupListener = FirestoreService.shared.listenToMultiCityGroup(groupId: currentGroup.id) { updatedGroup in
             if let updatedGroup = updatedGroup {
@@ -216,20 +201,13 @@ struct MultiCityGroupDetailView: View {
                 }
             }
         }
-        
-        // If you later support multi-city expenses in Firestore:
-        // expensesListener = FirestoreService.shared.listenToGroupExpenses(groupId: currentGroup.id) { updated in
-        //    withAnimation { expenses = updated }
-        // }
     }
     
     private func stopListeners() {
         groupListener?.remove()
         groupListener = nil
-        // expensesListener?.remove()
     }
     
-    // MARK: - Add Member
     private func addMember() {
         let email = newMemberEmail.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !email.isEmpty else { return }
@@ -250,14 +228,13 @@ struct MultiCityGroupDetailView: View {
                 showAddMember = false
                 isAddingMember = false
             } catch {
-                errorMessage = "An error occurred! Check member email or internet connection."
+                errorMessage = "An error occurred!"
                 showError = true
                 isAddingMember = false
             }
         }
     }
     
-    // MARK: - Convert MultiCityGroupPlan → GroupPlan (for MembersTabView)
     private func convertToGroupPlan(_ mc: MultiCityGroupPlan) -> GroupPlan {
         GroupPlan(
             id: mc.id,
@@ -268,14 +245,13 @@ struct MultiCityGroupDetailView: View {
                 location: mc.multiCityItinerary.cityNames,
                 duration: mc.multiCityItinerary.totalDuration,
                 interests: mc.multiCityItinerary.interests,
-                dailyPlans: [] // not used in MembersTabView
+                dailyPlans: []
             ),
             members: mc.members
         )
     }
 }
 
-// MARK: - City Tab Button
 struct CityTabButton: View {
     let city: CityStop
     let index: Int

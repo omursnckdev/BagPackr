@@ -325,6 +325,7 @@
 
     },
     "Are you sure you want to delete this itinerary? This action cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -334,7 +335,7 @@
         }
       }
     },
-    "Are you sure you want to delete this multi-city trip? This action cannot be undone." : {
+    "Are you sure you want to delete this multi-city trip?" : {
 
     },
     "Are you sure you want to sign out?" : {
@@ -392,7 +393,7 @@
         }
       }
     },
-    "Bu çok şehirli geziyi silmek istediğine emin misin? Bu işlem geri alınamaz." : {
+    "Bu çok şehirli geziyi silmek istediğine emin misin?" : {
 
     },
     "Budget" : {
@@ -479,9 +480,6 @@
           }
         }
       }
-    },
-    "Cities" : {
-
     },
     "Cities (%lld)" : {
 
@@ -693,6 +691,7 @@
 
     },
     "Delete Itinerary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -1269,6 +1268,9 @@
         }
       }
     },
+    "No itineraries available" : {
+
+    },
     "No itineraries yet" : {
       "localizations" : {
         "tr" : {
@@ -1494,9 +1496,6 @@
           }
         }
       }
-    },
-    "Şehirler" : {
-
     },
     "Select All" : {
       "localizations" : {
