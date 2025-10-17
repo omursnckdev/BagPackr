@@ -14,6 +14,9 @@
         }
       }
     },
+    "/%@" : {
+
+    },
     "%@ - %lld days" : {
       "localizations" : {
         "tr" : {
@@ -174,7 +177,7 @@
         }
       }
     },
-    "7 days free, then $4.99/month" : {
+    "7 days free, then %@" : {
 
     },
     "About" : {
@@ -1082,6 +1085,9 @@
     "Loading ad..." : {
 
     },
+    "Loading products..." : {
+
+    },
     "Local Markets" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1374,6 +1380,12 @@
         }
       }
     },
+    "PDF export is available for premium members. Upgrade now to export your itineraries!" : {
+
+    },
+    "PDF export is available for premium members. Upgrade now to export your trips!" : {
+
+    },
     "Plan Limit Reached" : {
 
     },
@@ -1387,7 +1399,13 @@
         }
       }
     },
+    "Premium Feature" : {
+
+    },
     "Premium Member" : {
+
+    },
+    "Processing..." : {
 
     },
     "Profile" : {
@@ -1687,6 +1705,9 @@
     "Start 7-Day Free Trial" : {
 
     },
+    "Start Planning!" : {
+
+    },
     "Street Food" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1697,6 +1718,9 @@
           }
         }
       }
+    },
+    "Success!" : {
+
     },
     "Tap number to type" : {
 
@@ -1889,6 +1913,9 @@
           }
         }
       }
+    },
+    "You're now a premium member! 🎉" : {
+
     },
     "You've reached your free plan limit. Next reset in %@" : {
 

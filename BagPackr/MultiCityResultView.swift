@@ -82,11 +82,7 @@ struct MultiCityResultView: View {
                     }
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: shareTrip) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
+        
             }
             .alert(isTR ? "Geziyi Sil" : "Delete Trip", isPresented: $showDeleteAlert) {
                 Button(isTR ? "Vazgeç" : "Cancel", role: .cancel) { }
@@ -225,13 +221,6 @@ struct MultiCityResultView: View {
     
     private var actionButtons: some View {
         HStack(spacing: 12) {
-            ActionButton(icon: "square.and.arrow.up",
-                         title: isTR ? "Paylaş" : "Share",
-                         color: .blue) {
-                shareTrip()
-            }
-            .frame(maxWidth: .infinity)
-
             ActionButton(icon: "trash",
                          title: isTR ? "Sil" : "Delete",
                          color: .red) {
@@ -319,9 +308,5 @@ struct CityTab: View {
     }
 }
 
-// MARK: - Safe Array Access
-extension Array {
-    subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
+
+

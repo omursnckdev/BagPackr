@@ -2,23 +2,25 @@
 //  ItineraryDetailView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 
-// MARK: - Itinerary Detail View
 struct ItineraryDetailView: View {
     let itineraryId: String
     @ObservedObject var viewModel: ItineraryListViewModel
+    @StateObject private var limitService = PlanLimitService.shared
+    
     @State private var showEditSheet = false
     @State private var showShareSheet = false
     @State private var showDeleteAlert = false
     @State private var showGroupShare = false
-    @State private var shareText = ""
+    @State private var showPremiumAlert = false
+    @State private var showPremiumSheet = false
+    @State private var shareItems: [Any] = []
+    @State private var isGeneratingPDF = false
+    
     @Environment(\.dismiss) var dismiss
     
-    // Get the latest itinerary from viewModel
     private var itinerary: Itinerary? {
         viewModel.itineraries.first(where: { $0.id == itineraryId })
     }
@@ -34,76 +36,8 @@ struct ItineraryDetailView: View {
             if let itinerary = itinerary {
                 ScrollView {
                     VStack(spacing: 20) {
-                        ZStack {
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: "mappin.circle.fill")
-                                        .font(.title)
-                                    Text(itinerary.location)
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                    
-                                    if itinerary.isShared {
-                                        Image(systemName: "person.2.fill")
-                                            .font(.title3)
-                                    }
-                                }
-                                
-                                HStack {
-                                    let daysText = Locale.current.language.languageCode?.identifier == "tr" ? "Gün" : "Days"
-                                    Label("\(itinerary.duration) \(daysText)", systemImage: "calendar")
-                                    Spacer()
-                                    VStack(alignment: .trailing) {
-                                        Text("Budget: $\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))")
-                                        Text("Spent: $\(Int(totalSpent(for: itinerary)))")
-                                            .font(.caption)
-                                    }
-                                }
-                                .font(.subheadline)
-                                
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
-                                        ForEach(itinerary.interests, id: \.self) { interest in
-                                            Text(LocalizedStringKey(interest))
-                                                .font(.caption)
-                                                .padding(.horizontal, 12)
-                                                .padding(.vertical, 6)
-                                                .background(Color.white.opacity(0.3))
-                                                .cornerRadius(15)
-                                        }
-                                    }
-                                }
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                        }
-                        .cornerRadius(20)
-                        .padding(.horizontal)
-                        
-                        // Action Buttons
-                        HStack(spacing: 12) {
-                            ActionButton(icon: "pencil", title: "Edit", color: .blue) {
-                                showEditSheet = true
-                            }
-                            .frame(maxWidth: .infinity)
-                            
-                            ActionButton(icon: "person.2.fill", title: "Group", color: .purple) {
-                                showGroupShare = true
-                            }
-                            .frame(maxWidth: .infinity)
-                            
-                            ActionButton(icon: "trash", title: "Delete", color: .red) {
-                                showDeleteAlert = true
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .padding(.horizontal)
+                        headerCard(for: itinerary)
+                        actionButtons
                         
                         ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
                             EnhancedDayPlanCard(
@@ -123,10 +57,21 @@ struct ItineraryDetailView: View {
                     EditItineraryView(itinerary: itinerary, viewModel: viewModel)
                 }
                 .sheet(isPresented: $showShareSheet) {
-                    ShareSheet(items: [shareText])
+                    ShareSheet(items: shareItems)
                 }
                 .sheet(isPresented: $showGroupShare) {
                     GroupShareView(itinerary: itinerary)
+                }
+                .sheet(isPresented: $showPremiumSheet) {
+                    PremiumUpgradeView()
+                }
+                .alert("Premium Feature", isPresented: $showPremiumAlert) {
+                    Button("Upgrade to Premium") {
+                        showPremiumSheet = true
+                    }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("PDF export is available for premium members. Upgrade now to export your itineraries!")
                 }
               
             } else {
@@ -138,30 +83,119 @@ struct ItineraryDetailView: View {
         }
     }
     
-    private func shareItinerary(itinerary: Itinerary) {
-        shareText = generateShareText(for: itinerary)
-        showShareSheet = true
-    }
+    // MARK: - Header Card
     
-    private func generateShareText(for itinerary: Itinerary) -> String {
-        var text = "🌍 \(itinerary.location) - \(itinerary.duration) Day Itinerary\n\n"
-        text += "📍 Interests: \(itinerary.interests.joined(separator: ", "))\n"
-        text += "💰 Budget: $\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))\n\n"
-        
-        for (index, plan) in itinerary.dailyPlans.enumerated() {
-            text += "📅 Day \(index + 1):\n"
-            for activity in plan.activities {
-                text += "  • \(activity.time) - \(activity.name)\n"
-                text += "    \(activity.description)\n"
-                if activity.cost > 0 {
-                    text += "    💵 $\(Int(activity.cost))\n"
+    private func headerCard(for itinerary: Itinerary) -> some View {
+        ZStack {
+            LinearGradient(
+                colors: [.blue, .purple],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "mappin.circle.fill")
+                        .font(.title)
+                    Text(itinerary.location)
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    if itinerary.isShared {
+                        Image(systemName: "person.2.fill")
+                            .font(.title3)
+                    }
+                }
+                
+                HStack {
+                    let daysText = Locale.current.language.languageCode?.identifier == "tr" ? "Gün" : "Days"
+                    Label("\(itinerary.duration) \(daysText)", systemImage: "calendar")
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Text("Budget: $\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))")
+                        Text("Spent: $\(Int(totalSpent(for: itinerary)))")
+                            .font(.caption)
+                    }
+                }
+                .font(.subheadline)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(itinerary.interests, id: \.self) { interest in
+                            Text(LocalizedStringKey(interest))
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.3))
+                                .cornerRadius(15)
+                        }
+                    }
                 }
             }
-            text += "\n"
+            .foregroundColor(.white)
+            .padding()
+        }
+        .cornerRadius(20)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Action Buttons
+    
+    private var actionButtons: some View {
+        HStack(spacing: 12) {
+            ActionButton(icon: "pencil", title: "Edit", color: .blue) {
+                showEditSheet = true
+            }
+            .frame(maxWidth: .infinity)
+            
+            ActionButton(
+                icon: "doc.text.fill",
+                title: limitService.isPremium ? "Export PDF" : "PDF 👑",
+                color: .green
+            ) {
+                handlePDFExport()
+            }
+            .frame(maxWidth: .infinity)
+            
+            ActionButton(icon: "person.2.fill", title: "Group", color: .purple) {
+                showGroupShare = true
+            }
+            .frame(maxWidth: .infinity)
+            
+            ActionButton(icon: "trash", title: "Delete", color: .red) {
+                showDeleteAlert = true
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Actions
+    
+    private func handlePDFExport() {
+        guard let itinerary = itinerary else { return }
+        
+        // Check premium status
+        if !limitService.isPremium {
+            showPremiumAlert = true
+            return
         }
         
-        text += "\nCreated with BagPckr ✈️"
-        return text
+        isGeneratingPDF = true
+        
+        Task {
+            if let pdfURL = PDFGenerator.shared.generatePDF(for: itinerary) {
+                await MainActor.run {
+                    shareItems = [pdfURL]
+                    showShareSheet = true
+                    isGeneratingPDF = false
+                }
+            } else {
+                await MainActor.run {
+                    isGeneratingPDF = false
+                }
+            }
+        }
     }
     
     private func deleteItinerary() {

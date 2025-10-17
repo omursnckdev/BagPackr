@@ -113,38 +113,44 @@ struct MultiCityGroupDetailView: View {
         .onAppear { startListeners() }
         .onDisappear { stopListeners() }
     }
+    
     private var itineraryTab: some View {
-        VStack(spacing: 0) {
-            cityTabs
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                cityTabs
 
-            ScrollView {
-                if let selectedCity = currentGroup.multiCityItinerary.cityStops[safe: selectedCityIndex],
-                   let itinerary = currentGroup.multiCityItinerary.itineraries[selectedCity.id] {
+                ScrollView {
+                    if let selectedCity = currentGroup.multiCityItinerary.cityStops[safe: selectedCityIndex],
+                       let itinerary = currentGroup.multiCityItinerary.itineraries[selectedCity.id] {
 
-                    VStack(spacing: 20) {
-                        cityHeader(for: selectedCity)
-                            .frame(maxWidth: .infinity)   // ✅ match parent width
-                            .padding(.horizontal)
+                        VStack(alignment: .leading, spacing: 20) {
+                            // 🟦 City Header
+                            cityHeader(for: selectedCity)
+                                .frame(width: geo.size.width - 32) // 👈 forces exact width with 16pt padding on each side
 
-                        ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
-                            EnhancedDayPlanCard(
-                                dayNumber: index + 1,
-                                plan: plan,
-                                location: selectedCity.location.name,
-                                itinerary: itinerary
-                            )
-                            .frame(maxWidth: .infinity)   // ✅ match parent width
-                            .padding(.horizontal)
+                            // 🟨 Day Plans
+                            LazyVStack(spacing: 16) {
+                                ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
+                                    EnhancedDayPlanCard(
+                                        dayNumber: index + 1,
+                                        plan: plan,
+                                        location: selectedCity.location.name,
+                                        itinerary: itinerary
+                                    )
+                                    .frame(width: geo.size.width - 32, alignment: .leading) // 👈 lock card width
+                                }
+                            }
                         }
+                        .padding(.horizontal, 16) // single, outer padding only
+                        .padding(.top, 20)
                     }
-                    .frame(maxWidth: .infinity)           // ✅ critical for equal sizing
-                    .padding(.top, 20)
                 }
             }
-            .frame(maxWidth: .infinity)                   // ✅ make scrollview take full width
+            .frame(width: geo.size.width, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)   // ✅ this was missing
     }
+
+
 
 
     
@@ -192,19 +198,30 @@ struct MultiCityGroupDetailView: View {
         }
         .cornerRadius(20)
     }
-    
+    @State private var expensesListener: ListenerRegistration?
+
     private func startListeners() {
+        // 🔥 Add this - listen to expenses
+        expensesListener = FirestoreService.shared.listenToGroupExpenses(groupId: currentGroup.id) { updatedExpenses in
+            withAnimation {
+                expenses = updatedExpenses
+            }
+        }
+        
+        // Listen to group changes (existing code)
         groupListener = FirestoreService.shared.listenToMultiCityGroup(groupId: currentGroup.id) { updatedGroup in
-            if let updatedGroup = updatedGroup {
+            if let group = updatedGroup {
                 withAnimation {
-                    refreshedGroup = updatedGroup
+                    refreshedGroup = group
                 }
             }
         }
     }
-    
+
     private func stopListeners() {
+        expensesListener?.remove()  // 🔥 Add this
         groupListener?.remove()
+        expensesListener = nil      // 🔥 Add this
         groupListener = nil
     }
     

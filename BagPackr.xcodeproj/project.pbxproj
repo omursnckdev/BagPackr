@@ -17,6 +17,7 @@
 		677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 677C9A312E8D3CCE00F9958C /* GoogleMobileAds */; };
 		677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7072E8E667200DE95A9 /* FirebaseFunctions */; };
 		677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */; };
+		678AF3592EA2549A00A6F5C8 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 678AF3582EA2549A00A6F5C8 /* StoreKit.framework */; };
 		67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 67A0170A2E8FA783000E573B /* FirebaseMessaging */; };
 		67BDEA512E965CEA00FB1658 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,7 @@
 /* Begin PBXFileReference section */
 		671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BagPackr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		67596D372E90098900703314 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		678AF3582EA2549A00A6F5C8 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,6 +65,7 @@
 				671A0C2E2E8D08C400A85EA5 /* FirebaseFirestore in Frameworks */,
 				671A0C392E8D0D2300A85EA5 /* GooglePlacesSwift in Frameworks */,
 				677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */,
+				678AF3592EA2549A00A6F5C8 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +78,7 @@
 				67596D372E90098900703314 /* Localizable.xcstrings */,
 				67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */,
 				671A0C1C2E8CFB2E00A85EA5 /* BagPackr */,
+				678AF3572EA2549A00A6F5C8 /* Frameworks */,
 				671A0C1B2E8CFB2E00A85EA5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,6 +89,14 @@
 				671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		678AF3572EA2549A00A6F5C8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				678AF3582EA2549A00A6F5C8 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -337,7 +349,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -381,7 +393,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

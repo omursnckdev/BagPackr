@@ -8,11 +8,16 @@ import SwiftUI
 struct MultiCityDetailView: View {
     let multiCity: MultiCityItinerary
     @ObservedObject var viewModel: ItineraryListViewModel
+    @StateObject private var limitService = PlanLimitService.shared
     
     @State private var selectedCityIndex = 0
     @State private var showDeleteAlert = false
     @State private var showShareSheet = false
-    @State private var shareText = ""
+    @State private var showPremiumAlert = false
+    @State private var showPremiumSheet = false
+    @State private var shareItems: [Any] = []
+    @State private var isGeneratingPDF = false
+    
     @Environment(\.dismiss) var dismiss
 
     private var selectedCity: CityStop? {
@@ -71,27 +76,25 @@ struct MultiCityDetailView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(multiCity.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: shareTrip) {
-                    Image(systemName: "square.and.arrow.up")
-                }
+      
+        
+        .alert("Premium Feature", isPresented: $showPremiumAlert) {
+            Button("Upgrade to Premium") {
+                showPremiumSheet = true
             }
-        }
-        .alert(isTR ? "Geziyi Sil" : "Delete Trip", isPresented: $showDeleteAlert) {
-            Button(isTR ? "Vazgeç" : "Cancel", role: .cancel) { }
-            Button(isTR ? "Sil" : "Delete", role: .destructive) {
-                deleteTrip()
-            }
+            Button("Cancel", role: .cancel) { }
         } message: {
-            Text(isTR
-                 ? "Bu çok şehirli geziyi silmek istediğine emin misin?"
-                 : "Are you sure you want to delete this multi-city trip?")
+            Text("PDF export is available for premium members. Upgrade now to export your trips!")
         }
         .sheet(isPresented: $showShareSheet) {
-            ShareSheet(items: [shareText])
+            ShareSheet(items: shareItems)
+        }
+        .sheet(isPresented: $showPremiumSheet) {
+            PremiumUpgradeView()
         }
     }
+    
+    // MARK: - Main Header Card
     
     private var mainHeaderCard: some View {
         ZStack {
@@ -138,6 +141,8 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - City Tabs Section
+    
     private var cityTabsSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -158,6 +163,8 @@ struct MultiCityDetailView: View {
             .padding(.horizontal)
         }
     }
+    
+    // MARK: - City Header Card
     
     private func cityHeaderCard(for city: CityStop) -> some View {
         ZStack {
@@ -212,14 +219,21 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - Action Buttons
+    
     private var actionButtons: some View {
         HStack(spacing: 12) {
-            ActionButton(icon: "square.and.arrow.up",
-                         title: isTR ? "Paylaş" : "Share",
-                         color: .blue) {
-                shareTrip()
+            ActionButton(
+                icon: isGeneratingPDF ? "hourglass" : "doc.text.fill",
+                title: isGeneratingPDF ? "..." : (limitService.isPremium ? "PDF" : "PDF 👑"),
+                color: .green
+            ) {
+                handlePDFExport()
             }
             .frame(maxWidth: .infinity)
+            .disabled(isGeneratingPDF)
+            
+  
 
             ActionButton(icon: "trash",
                          title: isTR ? "Sil" : "Delete",
@@ -231,8 +245,34 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - Actions
+    
+    private func handlePDFExport() {
+        // Check premium status
+        if !limitService.isPremium {
+            showPremiumAlert = true
+            return
+        }
+        
+        isGeneratingPDF = true
+        
+        Task {
+            if let pdfURL = PDFGenerator.shared.generatePDF(for: multiCity) {
+                await MainActor.run {
+                    shareItems = [pdfURL]
+                    showShareSheet = true
+                    isGeneratingPDF = false
+                }
+            } else {
+                await MainActor.run {
+                    isGeneratingPDF = false
+                }
+            }
+        }
+    }
+    
     private func shareTrip() {
-        shareText = generateShareText()
+        shareItems = [generateShareText()]
         showShareSheet = true
     }
 
@@ -265,5 +305,12 @@ struct MultiCityDetailView: View {
 
         text += "Created with BagPckr ✈️"
         return text
+    }
+}
+
+// MARK: - Safe Array Access Extension
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
