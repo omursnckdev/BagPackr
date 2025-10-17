@@ -128,14 +128,7 @@ struct ItineraryDetailView: View {
                 .sheet(isPresented: $showGroupShare) {
                     GroupShareView(itinerary: itinerary)
                 }
-                .alert("Delete Itinerary", isPresented: $showDeleteAlert) {
-                    Button("Cancel", role: .cancel) { }
-                    Button("Delete", role: .destructive) {
-                        deleteItinerary()
-                    }
-                } message: {
-                    Text("Are you sure you want to delete this itinerary? This action cannot be undone.")
-                }
+              
             } else {
                 ProgressView()
                     .onAppear {

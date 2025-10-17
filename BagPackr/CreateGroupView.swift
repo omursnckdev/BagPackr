@@ -1,4 +1,8 @@
-// Views/CreateGroupView.swift
+//
+//  CreateGroupView.swift
+//  BagPackr
+//
+
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
@@ -26,7 +30,6 @@ enum ItinerarySelection: Identifiable, Hashable {
         }
     }
     
-    // ✅ Hashable conformance
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -39,33 +42,58 @@ enum ItinerarySelection: Identifiable, Hashable {
 // MARK: - Create Group View
 struct CreateGroupView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: GroupPlansViewModel // ✅ parametre olarak geçildi
+    @ObservedObject var viewModel: GroupPlansViewModel
     @State private var selectedItinerary: ItinerarySelection?
     @State private var groupName = ""
     @State private var memberEmails: [String] = [""]
     @StateObject private var itineraryViewModel = ItineraryListViewModel()
+    @State private var isLoading = true
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Select Itinerary")) {
-                    Picker("Itinerary", selection: $selectedItinerary) {
-                        Text("Select...").tag(nil as ItinerarySelection?)
-                        
-                        // Regular itineraries
-                        ForEach(itineraryViewModel.itineraries) { itinerary in
-                            Text("\(itinerary.location) - \(itinerary.duration) days")
-                                .tag(ItinerarySelection.regular(itinerary) as ItinerarySelection?)
+                    if isLoading {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
                         }
-                        
-                        // Multi-city itineraries
-                        ForEach(itineraryViewModel.multiCityItineraries) { multiCity in
-                            Text("🗺️ \(multiCity.title) - \(multiCity.totalDuration) days")
-                                .tag(ItinerarySelection.multiCity(multiCity) as ItinerarySelection?)
+                    } else {
+                        Picker("Itinerary", selection: $selectedItinerary) {
+                            Text("Select...").tag(nil as ItinerarySelection?)
+                            
+                            // ✅ Multi-city itineraries section
+                            if !itineraryViewModel.multiCityItineraries.isEmpty {
+                                Section(header: Text("Multi-City Trips")) {
+                                    ForEach(itineraryViewModel.multiCityItineraries) { multiCity in
+                                        Text("🗺️ \(multiCity.title) - \(multiCity.totalDuration) days")
+                                            .tag(ItinerarySelection.multiCity(multiCity) as ItinerarySelection?)
+                                    }
+                                }
+                            }
+                            
+                            // ✅ Regular itineraries section
+                            if !itineraryViewModel.itineraries.isEmpty {
+                                Section(header: Text("Single City Trips")) {
+                                    ForEach(itineraryViewModel.itineraries) { itinerary in
+                                        Text("\(itinerary.location) - \(itinerary.duration) days")
+                                            .tag(ItinerarySelection.regular(itinerary) as ItinerarySelection?)
+                                    }
+                                }
+                            }
+                            
+                            // ✅ No itineraries message
+                            if itineraryViewModel.itineraries.isEmpty && itineraryViewModel.multiCityItineraries.isEmpty {
+                                Text("No itineraries available")
+                                    .foregroundColor(.gray)
+                                    .tag(nil as ItinerarySelection?)
+                            }
                         }
+                        .pickerStyle(.navigationLink)
                     }
                     
-                    // Selected itinerary preview
+                    // ✅ Selected itinerary preview
                     if let selected = selectedItinerary {
                         HStack {
                             Image(systemName: getIcon(for: selected))
@@ -116,16 +144,28 @@ struct CreateGroupView: View {
                     Button("Create") {
                         createGroup()
                     }
-                    .disabled(selectedItinerary == nil || groupName.isEmpty)
+                    .disabled(selectedItinerary == nil || groupName.isEmpty || isLoading)
                 }
             }
             .onAppear {
-                Task {
-                    await itineraryViewModel.loadItineraries()
-                }
+                loadItineraries()
             }
         }
     }
+    
+    // ✅ Load itineraries
+    private func loadItineraries() {
+        isLoading = true
+        Task {
+            await itineraryViewModel.loadItineraries()
+            await MainActor.run {
+                isLoading = false
+                print("✅ Loaded \(itineraryViewModel.itineraries.count) regular itineraries")
+                print("✅ Loaded \(itineraryViewModel.multiCityItineraries.count) multi-city itineraries")
+            }
+        }
+    }
+    
     private func createGroup() {
         guard let selection = selectedItinerary else { return }
         let validEmails = memberEmails.filter { !$0.isEmpty }
@@ -141,7 +181,6 @@ struct CreateGroupView: View {
                     )
                     
                 case .multiCity(let multiCity):
-                    // ✅ Multi-city için ayrı metod
                     try await FirestoreService.shared.createMultiCityGroupPlan(
                         name: groupName,
                         multiCity: multiCity,
@@ -155,62 +194,6 @@ struct CreateGroupView: View {
                 print("❌ Error creating group: \(error)")
             }
         }
-    }
-
-    // ✅ Yeni metod - itinerary kaydetmeden grup oluştur
-    private func createGroupPlanWithoutSaving(name: String, itinerary: Itinerary, memberEmails: [String]) async throws {
-        guard let currentUserEmail = Auth.auth().currentUser?.email else {
-            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
-        }
-        
-        var members = [GroupMember(email: currentUserEmail, isOwner: true)]
-        members.append(contentsOf: memberEmails.map { GroupMember(email: $0, isOwner: false) })
-        
-        // ✅ isShared flag'i ekleme - bu temporary bir itinerary
-        var groupItinerary = itinerary
-        // groupItinerary.isShared = true // Bunu eklemeyin, çünkü kaydetmiyoruz
-        
-        let group = GroupPlan(
-            name: name,
-            itinerary: groupItinerary,
-            members: members
-        )
-        
-        let encoder = Firestore.Encoder()
-        let data = try encoder.encode(group)
-        try await Firestore.firestore().collection("groupPlans").document(group.id).setData(data)
-        
-        // ✅ updateItinerary ÇAĞRILMIYOR - bu önemli!
-        print("✅ Group created without saving converted itinerary")
-    }
-    
-    private func convertMultiCityToItinerary(_ multiCity: MultiCityItinerary) -> Itinerary {
-        var allDailyPlans: [DailyPlan] = []
-        var dayCounter = 1
-        
-        for cityStop in multiCity.cityStops {
-            if let itinerary = multiCity.itineraries[cityStop.id] {
-                for plan in itinerary.dailyPlans {
-                    let adjustedPlan = DailyPlan(
-                        day: dayCounter,
-                        activities: plan.activities
-                    )
-                    allDailyPlans.append(adjustedPlan)
-                    dayCounter += 1
-                }
-            }
-        }
-        
-        return Itinerary(
-            id: UUID().uuidString,
-            userId: multiCity.userId,
-            location: multiCity.title,
-            duration: multiCity.totalDuration,
-            interests: multiCity.interests,
-            dailyPlans: allDailyPlans,
-            budgetPerDay: multiCity.budgetPerDay,
-            createdAt: multiCity.createdAt
-        )
     }
     
     private func getIcon(for selection: ItinerarySelection) -> String {

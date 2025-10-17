@@ -2,8 +2,6 @@
 //  MultiCityGroupPlanRow.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 
@@ -12,24 +10,23 @@ struct MultiCityGroupPlanRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            // Icon
             ZStack {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
                         LinearGradient(
-                            colors: [.blue.opacity(0.6), .purple.opacity(0.6)],
+                            colors: [.blue.opacity(0.6), .cyan.opacity(0.6)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .frame(width: 60, height: 60)
                 
-                Image(systemName: "map.fill")
+                Image(systemName: "person.3.fill")
                     .font(.title2)
                     .foregroundColor(.white)
             }
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(group.name)
                     .font(.headline)
                     .foregroundColor(.primary)
@@ -37,46 +34,28 @@ struct MultiCityGroupPlanRow: View {
                 
                 Text(group.multiCityItinerary.cityNames)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray)
                     .lineLimit(1)
                 
-                HStack(spacing: 4) {
-                    Label(
-                        "\(group.members.count) \(group.members.count == 1 ? "member" : "members")",
-                        systemImage: "person.2"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.purple)
-                    .padding(.trailing, 4)
-                    
-                    Text("•")
+                HStack(spacing: 12) {
+                    Label("\(group.members.count) members", systemImage: "person.2")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Label(
-                        "\(group.multiCityItinerary.citiesCount) cities",
-                        systemImage: "mappin.and.ellipse"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    
-                    Text("•")
+                    Label("\(group.multiCityItinerary.citiesCount) cities", systemImage: "map")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Label(
-                        "\(group.multiCityItinerary.totalDuration) days",
-                        systemImage: "calendar"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    Label("\(group.multiCityItinerary.totalDuration) days", systemImage: "calendar")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                .padding(.top, 2)
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
-                .font(.caption)
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 14)

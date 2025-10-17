@@ -174,124 +174,6 @@ class AuthViewModel: ObservableObject {
 
 }
 
-// ViewModels/MultiCityPlannerViewModel.swift
-import SwiftUI
-import Combine
-import FirebaseAuth
-
-@MainActor
-class MultiCityPlannerViewModel: ObservableObject {
-    @Published var tripTitle = ""
-    @Published var cityStops: [CityStop] = []
-    @Published var budgetPerDay: Double = 100
-    @Published var selectedInterests: Set<String> = []
-    @Published var isGenerating = false
-    @Published var generatedMultiCity: MultiCityItinerary? // ✅ Eklendi
-    @Published var showError = false
-    @Published var errorMessage = ""
-    
-    let availableInterests = [
-        "Beaches",
-        "Nightlife",
-        "Restaurants",
-        "Museums",
-        "Shopping",
-        "Parks",
-        "Adventure Sports",
-        "Historical Sites",
-        "Art Galleries",
-        "Local Markets",
-        "Street Food",
-        "Temples",
-        "Architecture",
-        "Hiking",
-        "Water Sports",
-        "Cafes",
-        "Live Music",
-        "Theater",
-        "Festivals"
-    ]
-    
-    var totalDuration: Int {
-        cityStops.reduce(0) { $0 + $1.duration }
-    }
-    
-    var totalBudget: Double {
-        budgetPerDay * Double(totalDuration)
-    }
-    
-    var canGenerate: Bool {
-        !tripTitle.isEmpty && cityStops.count >= 2 && !selectedInterests.isEmpty
-    }
-    
-    func addCity(_ cityStop: CityStop) {
-        cityStops.append(cityStop)
-    }
-    
-    func removeCity(_ cityStop: CityStop) {
-        cityStops.removeAll { $0.id == cityStop.id }
-    }
-    
-    func toggleInterest(_ interest: String) {
-        if selectedInterests.contains(interest) {
-            selectedInterests.remove(interest)
-        } else {
-            selectedInterests.insert(interest)
-        }
-    }
-    
-    func generateMultiCityTrip() async {
-        isGenerating = true
-        defer { isGenerating = false }
-        
-        do {
-            guard let userId = Auth.auth().currentUser?.uid else {
-                throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-            }
-            
-            var multiCity = MultiCityItinerary(
-                userId: userId,
-                title: tripTitle,
-                cityStops: cityStops,
-                interests: Array(selectedInterests),
-                budgetPerDay: budgetPerDay
-            )
-            
-            // Generate itinerary for each city
-            for cityStop in cityStops {
-                print("🔄 Generating itinerary for \(cityStop.location.name)...")
-                let itinerary = try await GeminiService.shared.generateItinerary(
-                    location: cityStop.location,
-                    duration: cityStop.duration,
-                    interests: Array(selectedInterests),
-                    budgetPerDay: budgetPerDay
-                )
-                multiCity.itineraries[cityStop.id] = itinerary
-            }
-            
-            // Save to Firestore
-            try await FirestoreService.shared.saveMultiCityItinerary(multiCity)
-            
-            print("✅ Multi-city trip generated successfully")
-            
-            // ✅ Set generated itinerary to show result
-            generatedMultiCity = multiCity
-            
-        } catch {
-            print("❌ Error generating multi-city trip: \(error)")
-            errorMessage = error.localizedDescription
-            showError = true
-        }
-    }
-    
-    func resetForm() {
-        tripTitle = ""
-        cityStops = []
-        selectedInterests = []
-        budgetPerDay = 100
-        generatedMultiCity = nil
-    }
-}
 
 @MainActor
 class CreateItineraryViewModel: ObservableObject {
@@ -379,15 +261,15 @@ import FirebaseFirestore
 @MainActor
 class GroupPlansViewModel: ObservableObject {
     @Published var groupPlans: [GroupPlan] = []
-    @Published var multiCityGroupPlans: [MultiCityGroupPlan] = [] // ✅ Eklendi
     @Published var isLoading = false
-    private var listener: ListenerRegistration?
+    @Published var multiCityGroupPlans: [MultiCityGroupPlan] = []
     private var multiCityListener: ListenerRegistration?
+    private var listener: ListenerRegistration?
     
     func startListening() {
         guard let userEmail = Auth.auth().currentUser?.email else { return }
         
-        // Regular groups
+        // Regular groups (mevcut kod)
         listener = Firestore.firestore()
             .collection("groupPlans")
             .whereField("memberEmails", arrayContains: userEmail)
@@ -402,7 +284,7 @@ class GroupPlansViewModel: ObservableObject {
                 }
             }
         
-        // ✅ Multi-city groups
+        // Multi-city groups
         multiCityListener = Firestore.firestore()
             .collection("multiCityGroupPlans")
             .whereField("memberEmails", arrayContains: userEmail)
@@ -417,14 +299,16 @@ class GroupPlansViewModel: ObservableObject {
                 }
             }
     }
-    
+
+    // stopListening() metodunu güncelleyin:
     func stopListening() {
         listener?.remove()
         multiCityListener?.remove()
         listener = nil
         multiCityListener = nil
     }
-    
+
+    // loadGroupPlans() metodunu güncelleyin:
     func loadGroupPlans() async {
         isLoading = true
         
@@ -450,7 +334,6 @@ class GroupPlansViewModel: ObservableObject {
 class ItineraryListViewModel: ObservableObject {
     @Published var itineraries: [Itinerary] = []
     @Published var multiCityItineraries: [MultiCityItinerary] = []
-    
     func loadItineraries() async {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("❌ No user ID")
@@ -459,24 +342,22 @@ class ItineraryListViewModel: ObservableObject {
         
         print("🔍 Loading itineraries for user: \(userId)")
         
-        // ✅ Load regular itineraries (ayrı try-catch)
+        // Load regular itineraries
         do {
             let loadedItineraries = try await FirestoreService.shared.loadItineraries(userId: userId)
             self.itineraries = loadedItineraries
             print("✅ Loaded \(loadedItineraries.count) regular itineraries")
         } catch {
             print("❌ Error loading regular itineraries: \(error)")
-            // Regular itineraries yüklenemedi ama devam et
         }
         
-        // ✅ Load multi-city itineraries (ayrı try-catch)
+        // Load multi-city itineraries
         do {
             let loadedMultiCity = try await FirestoreService.shared.loadMultiCityItineraries(userId: userId)
             self.multiCityItineraries = loadedMultiCity
             print("✅ Loaded \(loadedMultiCity.count) multi-city itineraries")
         } catch {
             print("❌ Error loading multi-city itineraries: \(error)")
-            // Multi-city yüklenemedi ama regular itineraries zaten yüklendi
         }
         
         print("📊 Final count: \(self.itineraries.count) regular, \(self.multiCityItineraries.count) multi-city")

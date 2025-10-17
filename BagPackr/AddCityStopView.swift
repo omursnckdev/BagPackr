@@ -2,8 +2,6 @@
 //  AddCityStopView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 

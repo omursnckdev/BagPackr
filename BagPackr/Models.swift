@@ -13,8 +13,8 @@ import GooglePlaces
 import MapKit
 import Combine
 import GoogleMobileAds
-// MARK: - Models
-// Models/LocationData.swift
+
+// MARK: - Multi-City Models
 
 struct LocationData: Identifiable, Codable, Equatable, Hashable {
     let id: String
@@ -29,41 +29,14 @@ struct LocationData: Identifiable, Codable, Equatable, Hashable {
         self.longitude = longitude
     }
     
-    // ✅ Equatable conformance
     static func == (lhs: LocationData, rhs: LocationData) -> Bool {
         return lhs.id == rhs.id
     }
     
-    // ✅ Hashable conformance
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 }
-// Models/MultiCityGroupPlan.swift
-import Foundation
-
-struct MultiCityGroupPlan: Identifiable, Codable {
-    let id: String
-    let name: String
-    let multiCityItinerary: MultiCityItinerary
-    let members: [GroupMember]
-    let memberEmails: [String]
-    let createdAt: Date
-    let ownerId: String
-    
-    init(name: String, multiCityItinerary: MultiCityItinerary, members: [GroupMember]) {
-        self.id = UUID().uuidString
-        self.name = name
-        self.multiCityItinerary = multiCityItinerary
-        self.members = members
-        self.memberEmails = members.map { $0.email }
-        self.createdAt = Date()
-        self.ownerId = members.first(where: { $0.isOwner })?.email ?? ""
-    }
-}
-
-// Models/MultiCityItinerary.swift
-
 
 struct CityStop: Identifiable, Codable, Equatable, Hashable {
     let id: String
@@ -71,7 +44,7 @@ struct CityStop: Identifiable, Codable, Equatable, Hashable {
     var duration: Int // days
     var arrivalDate: Date?
     var departureDate: Date?
-    var order: Int // For sorting
+    var order: Int
     
     init(id: String = UUID().uuidString, location: LocationData, duration: Int, order: Int = 0) {
         self.id = id
@@ -82,12 +55,10 @@ struct CityStop: Identifiable, Codable, Equatable, Hashable {
         self.order = order
     }
     
-    // ✅ Equatable conformance
     static func == (lhs: CityStop, rhs: CityStop) -> Bool {
         return lhs.id == rhs.id
     }
     
-    // ✅ Hashable conformance
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -135,6 +106,34 @@ struct MultiCityItinerary: Identifiable, Codable {
         return cityStops.map { $0.location.name }.joined(separator: " → ")
     }
 }
+
+struct MultiCityGroupPlan: Identifiable, Codable {
+    let id: String
+    let name: String
+    let multiCityItinerary: MultiCityItinerary
+    let members: [GroupMember]
+    let memberEmails: [String]
+    let createdAt: Date
+    let ownerId: String
+    
+    init(name: String, multiCityItinerary: MultiCityItinerary, members: [GroupMember]) {
+        self.id = UUID().uuidString
+        self.name = name
+        self.multiCityItinerary = multiCityItinerary
+        self.members = members
+        self.memberEmails = members.map { $0.email }
+        self.createdAt = Date()
+        self.ownerId = members.first(where: { $0.isOwner })?.email ?? ""
+    }
+}
+
+
+// Models/MultiCityItinerary.swift
+
+
+
+
+
 
 struct Itinerary: Identifiable, Codable, Equatable, Hashable {
     let id: String
@@ -186,6 +185,11 @@ struct DailyPlan: Identifiable, Codable {
         self.activities = activities
     }
 }
+// Add these to your Models.swift file
+
+
+
+// For group plans with multi-city
 
 struct Activity: Identifiable, Codable {
     let id: String

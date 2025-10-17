@@ -2,18 +2,12 @@
 //  ItineraryListView.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
-
-// Views/ItineraryListView.swift
 import SwiftUI
 import FirebaseAuth
 
 struct ItineraryListView: View {
     @ObservedObject var viewModel: ItineraryListViewModel
-    @State private var showMultiCityDetail = false
-    @State private var selectedMultiCity: MultiCityItinerary?
     
     var body: some View {
         NavigationView {
@@ -22,6 +16,27 @@ struct ItineraryListView: View {
                     emptyStateView
                 } else {
                     List {
+                        // ✅ Multi-City Section - NavigationLink ile
+                        if !viewModel.multiCityItineraries.isEmpty {
+                            Section {
+                                ForEach(viewModel.multiCityItineraries) { multiCity in
+                                    NavigationLink(destination: MultiCityDetailView(multiCity: multiCity, viewModel: viewModel)) {
+                                        MultiCityItineraryCard(multiCity: multiCity)
+                                    }
+                                }
+                                .onDelete(perform: deleteMultiCityItineraries)
+                            } header: {
+                                HStack {
+                                    Image(systemName: "map.fill")
+                                    Text("Multi-City Trips")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                            }
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
                         
                         // Single City Section
                         if !viewModel.itineraries.isEmpty {
@@ -45,7 +60,6 @@ struct ItineraryListView: View {
                             .listRowBackground(Color.clear)
                         }
                     }
-                    .id(UUID())
                     .listStyle(.plain)
                     .background(Color(.systemGroupedBackground))
                 }
@@ -59,7 +73,6 @@ struct ItineraryListView: View {
             .refreshable {
                 await viewModel.loadItineraries()
             }
-     
         }
     }
     
