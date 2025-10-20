@@ -2,291 +2,253 @@
 //  PremiumPaywallView.swift
 //  BagPackr
 //
+//  Created by Ömür Şenocak
+//
 
 import SwiftUI
-import StoreKit
+import RevenueCat
 
 struct PremiumPaywallView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var planLimitService = PlanLimitService.shared
-    @StateObject private var storeManager = StoreManager.shared
+    @StateObject private var revenueCat = RevenueCatManager.shared
+    
+    @State private var selectedPackage: Package?
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var showSuccess = false
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 32) {
-                    // Header
-                    VStack(spacing: 16) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.orange.opacity(0.2), .pink.opacity(0.2)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 100, height: 100)
-                            
+            ZStack {
+                // Gradient Background
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 30) {
+                        // Header
+                        VStack(spacing: 12) {
                             Image(systemName: "crown.fill")
-                                .font(.system(size: 50))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.orange, .pink],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
+                                .font(.system(size: 60))
+                                .foregroundColor(.yellow)
+                            
+                            Text("Upgrade to Premium")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                            
+                            Text("Unlimited Travel Planning")
+                                .font(.title3)
+                                .foregroundColor(.white.opacity(0.9))
                         }
+                        .foregroundColor(.white)
+                        .padding(.top, 40)
                         
-                        Text("Upgrade to Premium")
-                            .font(.system(size: 32, weight: .bold))
-                        
-                        Text("Unlimited plans and features")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.top, 32)
-                    
-                    // Features
-                    VStack(alignment: .leading, spacing: 20) {
-                        FeatureRow(
-                            icon: "infinity",
-                            title: "Unlimited Plans",
-                            description: "Create as many itineraries as you want",
-                            color: .blue
+                        // Features
+                        VStack(spacing: 20) {
+                            FeatureRow(icon: "infinity", text: "Unlimited Itineraries")
+                            FeatureRow(icon: "map.fill", text: "Unlimited Multi-City Plans")
+                            FeatureRow(icon: "person.3.fill", text: "Unlimited Group Plans")
+                            FeatureRow(icon: "wand.and.stars", text: "Priority AI Generation")
+                            FeatureRow(icon: "bell.slash.fill", text: "Ad-Free Experience")
+                            FeatureRow(icon: "arrow.triangle.2.circlepath", text: "Sync Across Devices")
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(.white.opacity(0.15))
                         )
+                        .padding(.horizontal)
                         
-                        FeatureRow(
-                            icon: "wand.and.stars",
-                            title: "Unlimited AI",
-                            description: "Generate perfect plans without limits",
-                            color: .purple
-                        )
-                        
-                        FeatureRow(
-                            icon: "rectangle.slash",
-                            title: "Ad-Free",
-                            description: "Enjoy a clean, distraction-free experience",
-                            color: .green
-                        )
-                        
-                        FeatureRow(
-                            icon: "sparkles",
-                            title: "Premium Features",
-                            description: "Access all future premium features",
-                            color: .orange
-                        )
-                    }
-                    .padding(.horizontal, 24)
-                    
-                    // Pricing
-                    VStack(spacing: 16) {
-                        if storeManager.products.isEmpty {
-                            ProgressView()
-                                .padding()
-                        } else {
-                            ForEach(storeManager.products) { product in
-                                PricingCard(product: product) {
-                                    Task {
-                                        await purchasePremium(product)
+                        // Packages
+                        if let offering = revenueCat.currentOffering {
+                            VStack(spacing: 16) {
+                                ForEach(offering.availablePackages, id: \.identifier) { package in
+                                    PackageButton(
+                                        package: package,
+                                        isSelected: selectedPackage?.identifier == package.identifier
+                                    ) {
+                                        selectedPackage = package
                                     }
                                 }
                             }
+                            .padding(.horizontal)
+                        } else {
+                            ProgressView()
+                                .tint(.white)
                         }
-                    }
-                    .padding(.horizontal, 24)
-                    
-                    // Social proof
-                    VStack(spacing: 8) {
-                        HStack(spacing: 4) {
-                            ForEach(0..<5) { _ in
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.orange)
-                                    .font(.caption)
+                        
+                        // Purchase Button
+                        Button(action: purchaseSelected) {
+                            Group {
+                                if isPurchasing {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Text("Start Premium")
+                                        .fontWeight(.bold)
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color.white)
+                            .foregroundColor(.blue)
+                            .cornerRadius(16)
                         }
+                        .disabled(selectedPackage == nil || isPurchasing)
+                        .padding(.horizontal)
                         
-                        Text("Loved by 1000+ travelers")
+                        // Restore Button
+                        Button("Restore Purchases") {
+                            restorePurchases()
+                        }
+                        .foregroundColor(.white.opacity(0.8))
+                        .font(.footnote)
+                        
+                        // Terms
+                        Text("Auto-renewable. Cancel anytime.")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
                     }
-                    
-                    // Fine print
-                    VStack(spacing: 4) {
-                        Text("7-day free trial, then auto-renews")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Cancel anytime from App Store settings")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                    .padding(.bottom, 32)
+                    .padding(.bottom, 40)
                 }
             }
-            .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
+                    Button("Close") {
                         dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                            .font(.title3)
                     }
+                    .foregroundColor(.white)
                 }
+            }
+            .alert("Success! 🎉", isPresented: $showSuccess) {
+                Button("Continue") {
+                    dismiss()
+                }
+            } message: {
+                Text("Welcome to BagPckr Premium!")
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") {}
+            } message: {
+                Text(errorMessage)
             }
         }
         .task {
-            await storeManager.loadProducts()
+            if revenueCat.currentOffering == nil {
+                await revenueCat.fetchOfferings()
+            }
+            
+            // Pre-select first package
+            selectedPackage = revenueCat.currentOffering?.availablePackages.first
         }
     }
     
-    func purchasePremium(_ product: Product) async {
-        do {
-            try await storeManager.purchase(product)
-            
-            // Upgrade user
-            try await planLimitService.upgradeToPremium()
-            
-            // Dismiss paywall
-            dismiss()
-            
-            print("✅ Premium purchase successful!")
-            
-        } catch {
-            print("❌ Purchase failed: \(error)")
+    func purchaseSelected() {
+        guard let package = selectedPackage else { return }
+        
+        isPurchasing = true
+        
+        Task {
+            do {
+                try await revenueCat.purchase(package: package)
+                
+                await MainActor.run {
+                    isPurchasing = false
+                    showSuccess = true
+                }
+                
+            } catch PurchaseError.cancelled {
+                await MainActor.run {
+                    isPurchasing = false
+                }
+            } catch {
+                await MainActor.run {
+                    isPurchasing = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
+    }
+    
+    func restorePurchases() {
+        isPurchasing = true
+        
+        Task {
+            do {
+                try await revenueCat.restorePurchases()
+                
+                await MainActor.run {
+                    isPurchasing = false
+                    showSuccess = true
+                }
+                
+            } catch {
+                await MainActor.run {
+                    isPurchasing = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
         }
     }
 }
 
 // MARK: - Feature Row
 
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    let color: Color
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 44, height: 44)
-                
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(color)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline.bold())
-                    .foregroundColor(.primary)
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            
-            Spacer()
-        }
-    }
-}
 
-// MARK: - Pricing Card
-
-struct PricingCard: View {
-    let product: Product
+// MARK: - Package Button
+struct PackageButton: View {
+    let package: Package
+    let isSelected: Bool
     let action: () -> Void
-    
-    var isYearly: Bool {
-        product.subscription?.subscriptionPeriod.unit == .year
-    }
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
-                // Badge
-                if isYearly {
-                    HStack {
-                        Spacer()
-                        Text("BEST VALUE 🔥")
-                            .font(.caption2.bold())
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                LinearGradient(
-                                    colors: [.orange, .pink],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(12)
-                    }
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(package.storeProduct.localizedTitle)
+                        .font(.headline)
+                        .foregroundColor(isSelected ? .blue : .white)
+                    
+                    Text(package.storeProduct.localizedDescription)
+                        .font(.caption)
+                        .foregroundColor(isSelected ? .blue.opacity(0.8) : .white.opacity(0.7))
                 }
                 
-                // Content
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(product.displayName)
-                            .font(.title3.bold())
-                            .foregroundColor(.primary)
-                        
-                        if isYearly {
-                            Text("Save 44%")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        }
-                    }
+                Spacer()
+                
+                VStack(alignment: .trailing) {
+                    Text(package.localizedPriceString)
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(isSelected ? .blue : .white)
                     
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(product.displayPrice)
-                            .font(.title2.bold())
-                            .foregroundColor(.primary)
-                        
-                        if isYearly {
-                            Text("₺83/month")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                    if package.packageType == .annual {
+                        Text("Best Value!")
+                            .font(.caption2)
+                            .foregroundColor(isSelected ? .blue : .yellow)
+                            .fontWeight(.semibold)
                     }
                 }
             }
             .padding()
-            .background(Color.white)
-            .cornerRadius(16)
-            .shadow(
-                color: isYearly ? Color.orange.opacity(0.3) : Color.black.opacity(0.1),
-                radius: isYearly ? 12 : 8,
-                x: 0,
-                y: 4
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? Color.white : Color.white.opacity(0.15))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        isYearly ? LinearGradient(
-                            colors: [.orange, .pink],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ) : LinearGradient(colors: [.clear], startPoint: .top, endPoint: .bottom),
-                        lineWidth: isYearly ? 2 : 0
-                    )
+                    .stroke(isSelected ? Color.white : Color.clear, lineWidth: 3)
             )
         }
-        .buttonStyle(.plain)
     }
-}
-
-#Preview {
-    PremiumPaywallView()
 }

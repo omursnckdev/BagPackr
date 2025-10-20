@@ -14,9 +14,6 @@
         }
       }
     },
-    "/%@" : {
-
-    },
     "%@ - %lld days" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -170,15 +167,6 @@
           }
         }
       }
-    },
-    "₺83/month" : {
-
-    },
-    "7 days free, then %@" : {
-
-    },
-    "7-day free trial, then auto-renews" : {
-
     },
     "About" : {
       "localizations" : {
@@ -361,6 +349,9 @@
         }
       }
     },
+    "Auto-renewable. Cancel anytime." : {
+
+    },
     "BagPckr" : {
       "localizations" : {
         "tr" : {
@@ -395,7 +386,7 @@
         }
       }
     },
-    "BEST VALUE 🔥" : {
+    "Best Value!" : {
 
     },
     "Bu çok şehirli geziyi silmek istediğine emin misin?" : {
@@ -480,9 +471,6 @@
     "Cancel anytime" : {
 
     },
-    "Cancel anytime from App Store settings" : {
-
-    },
     "Category" : {
       "localizations" : {
         "tr" : {
@@ -548,6 +536,9 @@
           }
         }
       }
+    },
+    "Continue" : {
+
     },
     "Create" : {
       "localizations" : {
@@ -1181,9 +1172,6 @@
         }
       }
     },
-    "Loved by 1000+ travelers" : {
-
-    },
     "Map" : {
       "localizations" : {
         "tr" : {
@@ -1341,6 +1329,9 @@
         }
       }
     },
+    "No products available" : {
+
+    },
     "OK" : {
       "localizations" : {
         "tr" : {
@@ -1453,7 +1444,7 @@
         }
       }
     },
-    "Please check your internet connection and try again" : {
+    "Please check your internet connection" : {
 
     },
     "Premium Feature" : {
@@ -1552,9 +1543,6 @@
         }
       }
     },
-    "Retry" : {
-
-    },
     "Save" : {
       "localizations" : {
         "tr" : {
@@ -1564,9 +1552,6 @@
           }
         }
       }
-    },
-    "Save 44%" : {
-
     },
     "Search location" : {
       "localizations" : {
@@ -1774,10 +1759,10 @@
         }
       }
     },
-    "Start 7-Day Free Trial" : {
+    "Start Planning!" : {
 
     },
-    "Start Planning!" : {
+    "Start Premium" : {
 
     },
     "Street Food" : {
@@ -1791,7 +1776,7 @@
         }
       }
     },
-    "Success!" : {
+    "Success! 🎉" : {
 
     },
     "Tap number to type" : {
@@ -1935,13 +1920,10 @@
     "Try selecting different interests or clear the filter" : {
 
     },
-    "Unable to load products" : {
-
-    },
     "Unlimited plans" : {
 
     },
-    "Unlimited plans and features" : {
+    "Unlimited Travel Planning" : {
 
     },
     "Unlock unlimited travel planning" : {
@@ -1998,7 +1980,10 @@
         }
       }
     },
-    "You're now a premium member! 🎉" : {
+    "Welcome to BagPckr Premium!" : {
+
+    },
+    "You're now a premium member!" : {
 
     },
     "You've reached your free plan limit (1 active plan). Upgrade to Premium for unlimited plans!" : {

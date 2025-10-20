@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct CreateItineraryView: View {
     
@@ -15,7 +16,7 @@ struct CreateItineraryView: View {
     @State private var showPaywall = false
     @State private var showMapPicker = false
     @State private var isWaitingForAd = false
-    @State private var showPremiumAlert = false  
+
     @StateObject private var planLimitService = PlanLimitService.shared
     // Locale-based values
     private var minBudget: Double {
@@ -418,19 +419,21 @@ struct CreateItineraryView: View {
                 .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
         }
         .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd)
+        
+        // ✅ Premium Alert
         .alert("Premium Required 💎", isPresented: $viewModel.showPremiumAlert) {
-                  Button("Upgrade to Premium") {
-                      showPaywall = true
-                  }
-                  Button("Cancel", role: .cancel) {}
-              } message: {
-                  Text(viewModel.premiumAlertMessage)
-              }
-              
-              // ⭐ NEW: Paywall sheet
-              .sheet(isPresented: $showPaywall) {
-                  PremiumPaywallView()
-              }
+            Button("Upgrade to Premium") {
+                showPaywall = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.premiumAlertMessage)
+        }
+        
+        // ✅ Paywall sheet
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
+        }
         .padding(.horizontal)
     }
     
@@ -462,7 +465,7 @@ struct CreateItineraryView: View {
     private func handleGenerateButtonTap() {
         // ⭐ STEP 1: Check plan limit first
         if !planLimitService.canCreatePlan {
-            showPremiumAlert = true
+            viewModel.showPremiumAlert = true  // ✅ CORRECT!
             print("⚠️ Plan limit reached: \(planLimitService.activePlansCount)/1")
             return
         }

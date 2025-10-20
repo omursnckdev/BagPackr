@@ -13,6 +13,10 @@
 		671A0C342E8D0AEE00A85EA5 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C332E8D0AEE00A85EA5 /* GoogleMaps */; };
 		671A0C372E8D0D2300A85EA5 /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C362E8D0D2300A85EA5 /* GooglePlaces */; };
 		671A0C392E8D0D2300A85EA5 /* GooglePlacesSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 671A0C382E8D0D2300A85EA5 /* GooglePlacesSwift */; };
+		671BCEC72EA6B93900C35649 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 671BCEC62EA6B93900C35649 /* FirebaseAnalytics */; };
+		671BCECC2EA6C0DA00C35649 /* ReceiptParser in Frameworks */ = {isa = PBXBuildFile; productRef = 671BCECB2EA6C0DA00C35649 /* ReceiptParser */; };
+		671BCECE2EA6C0DA00C35649 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 671BCECD2EA6C0DA00C35649 /* RevenueCat */; };
+		671BCED02EA6C0DA00C35649 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 671BCECF2EA6C0DA00C35649 /* RevenueCatUI */; };
 		67596D382E90098900703314 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 67596D372E90098900703314 /* Localizable.xcstrings */; };
 		677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 677C9A312E8D3CCE00F9958C /* GoogleMobileAds */; };
 		677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7072E8E667200DE95A9 /* FirebaseFunctions */; };
@@ -57,9 +61,13 @@
 			files = (
 				671A0C342E8D0AEE00A85EA5 /* GoogleMaps in Frameworks */,
 				671A0C312E8D0AC300A85EA5 /* GoogleGenerativeAI in Frameworks */,
+				671BCECE2EA6C0DA00C35649 /* RevenueCat in Frameworks */,
+				671BCECC2EA6C0DA00C35649 /* ReceiptParser in Frameworks */,
+				671BCEC72EA6B93900C35649 /* FirebaseAnalytics in Frameworks */,
 				67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */,
 				677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */,
 				671A0C2C2E8D08C400A85EA5 /* FirebaseAuth in Frameworks */,
+				671BCED02EA6C0DA00C35649 /* RevenueCatUI in Frameworks */,
 				677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */,
 				671A0C372E8D0D2300A85EA5 /* GooglePlaces in Frameworks */,
 				671A0C2E2E8D08C400A85EA5 /* FirebaseFirestore in Frameworks */,
@@ -129,6 +137,10 @@
 				677FC7072E8E667200DE95A9 /* FirebaseFunctions */,
 				677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */,
 				67A0170A2E8FA783000E573B /* FirebaseMessaging */,
+				671BCEC62EA6B93900C35649 /* FirebaseAnalytics */,
+				671BCECB2EA6C0DA00C35649 /* ReceiptParser */,
+				671BCECD2EA6C0DA00C35649 /* RevenueCat */,
+				671BCECF2EA6C0DA00C35649 /* RevenueCatUI */,
 			);
 			productName = BagPackr;
 			productReference = 671A0C1A2E8CFB2E00A85EA5 /* BagPackr.app */;
@@ -166,6 +178,7 @@
 				671A0C322E8D0AEE00A85EA5 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
 				671A0C352E8D0D2300A85EA5 /* XCRemoteSwiftPackageReference "ios-places-sdk" */,
 				677C9A302E8D3CCE00F9958C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				671BCECA2EA6C0DA00C35649 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 671A0C1B2E8CFB2E00A85EA5 /* Products */;
@@ -467,6 +480,14 @@
 				minimumVersion = 10.1.0;
 			};
 		};
+		671BCECA2EA6C0DA00C35649 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.44.1;
+			};
+		};
 		677C9A302E8D3CCE00F9958C /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
@@ -507,6 +528,25 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 671A0C352E8D0D2300A85EA5 /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
 			productName = GooglePlacesSwift;
+		};
+		671BCEC62EA6B93900C35649 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAnalytics;
+		};
+		671BCECB2EA6C0DA00C35649 /* ReceiptParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 671BCECA2EA6C0DA00C35649 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = ReceiptParser;
+		};
+		671BCECD2EA6C0DA00C35649 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 671BCECA2EA6C0DA00C35649 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+		671BCECF2EA6C0DA00C35649 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 671BCECA2EA6C0DA00C35649 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCatUI;
 		};
 		677C9A312E8D3CCE00F9958C /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;

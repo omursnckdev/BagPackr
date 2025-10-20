@@ -39,6 +39,9 @@ class AuthViewModel: ObservableObject {
             // ⭐ Load user profile
             Task {
                 await loadUserProfile()
+                RevenueCatManager.shared.identifyUser(user.uid)
+                await RevenueCatManager.shared.checkSubscriptionStatus()
+
             }
         }
     }
@@ -48,9 +51,17 @@ class AuthViewModel: ObservableObject {
         self.currentUser = result.user
         self.isAuthenticated = true
         
+        AnalyticsService.shared.logLogin()
         // ⭐ Load user profile and save token
         await loadUserProfile()
         await saveDeviceToken()
+        
+        RevenueCatManager.shared.identifyUser(result.user.uid)
+        await RevenueCatManager.shared.checkSubscriptionStatus()
+        
+        if let isPremium = userProfile?.isPremium {
+            AnalyticsService.shared.setUserProperty(isPremium: isPremium)
+        }
     }
     
     func signUp(email: String, password: String) async throws {
@@ -58,6 +69,7 @@ class AuthViewModel: ObservableObject {
         self.currentUser = result.user
         self.isAuthenticated = true
         
+        AnalyticsService.shared.logSignUp()
         // ⭐ Create user document, load profile, and save token
         await createUserDocument()
         await loadUserProfile()
@@ -65,6 +77,10 @@ class AuthViewModel: ObservableObject {
     }
     
     func signOut() {
+        
+        AnalyticsService.shared.logLogout()
+
+        
         try? Auth.auth().signOut()
         self.currentUser = nil
         self.userProfile = nil  // ⭐ Clear user profile too
@@ -237,6 +253,7 @@ class AuthViewModel: ObservableObject {
                         .document(userId)
                         .delete()
                     
+                    AnalyticsService.shared.logAccountDeleted()
                     // 6. Delete Firebase Auth account
                     try await user.delete()
                     
@@ -273,9 +290,10 @@ class CreateItineraryViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var showSaveSuccess = false
     
-    // ⭐ NEW: Premium alert
     @Published var showPremiumAlert = false
-    @Published var premiumAlertMessage = ""
+    @Published var premiumAlertMessage = "You've reached your plan limit. Upgrade to Premium for unlimited itineraries!"
+
+
     
     // ⭐ NEW: Plan limit service
     private let planLimitService = PlanLimitService.shared
@@ -297,6 +315,10 @@ class CreateItineraryViewModel: ObservableObject {
             selectedInterests.remove(interest)
         } else {
             selectedInterests.insert(interest)
+            AnalyticsService.shared.logInterestSelected(
+                    interest: interest,
+                    isCustom: false
+                )
         }
     }
     
@@ -306,6 +328,10 @@ class CreateItineraryViewModel: ObservableObject {
         
         customInterests.append(trimmed)
         selectedInterests.insert(trimmed)
+        
+        AnalyticsService.shared.logCustomInterestAdded(interest: trimmed)
+          AnalyticsService.shared.logInterestSelected(interest: trimmed, isCustom: true)
+          
         customInterestInput = ""
     }
     
@@ -320,6 +346,9 @@ class CreateItineraryViewModel: ObservableObject {
         
         isGenerating = true
         
+        let startTime = Date()
+        AnalyticsService.shared.logAIGenerationStarted(type: "single_city")
+        
         Task {
             // ⭐ STEP 1: Check plan limit BEFORE generating
             let (canCreate, reason) = await planLimitService.canGeneratePlan()
@@ -329,7 +358,8 @@ class CreateItineraryViewModel: ObservableObject {
                 premiumAlertMessage = reason ?? "Upgrade to Premium for unlimited plans!"
                 showPremiumAlert = true
                 isGenerating = false
-                
+                AnalyticsService.shared.logPremiumUpgradeShown(reason: "plan_limit_reached")
+
                 print("⚠️ Plan limit reached. Premium required.")
                 return
             }
@@ -350,6 +380,22 @@ class CreateItineraryViewModel: ObservableObject {
                 
                 // Reload the list after saving
                 await itineraryListViewModel.loadItineraries()
+                
+                let duration = Date().timeIntervalSince(startTime)
+                      AnalyticsService.shared.logAIGenerationCompleted(
+                          type: "single_city",
+                          duration: duration
+                      )
+                      
+                      AnalyticsService.shared.logItineraryCreated(
+                          location: location.name,
+                          duration: self.duration,
+                          interestCount: selectedInterests.count,
+                          budgetPerDay: budgetPerDay,
+                          isPremium: planLimitService.isPremium
+                      )
+                      
+                
                 showSaveSuccess = true
                 
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -364,7 +410,11 @@ class CreateItineraryViewModel: ObservableObject {
                 errorMessage = error.localizedDescription
                 showError = true
                 isGenerating = false
-                
+                // ⭐ Analytics - Failure
+                        AnalyticsService.shared.logAIGenerationFailed(
+                            type: "single_city",
+                            error: error.localizedDescription
+                        )
                 print("❌ Error creating itinerary: \(error)")
             }
         }
@@ -514,6 +564,11 @@ class ItineraryListViewModel: ObservableObject {
             // Update plan count
             await planLimitService.decrementPlanCount()
             
+            AnalyticsService.shared.logItineraryDeleted(
+                     location: itinerary.location,
+                     duration: itinerary.duration
+                 )
+            
             print("✅ Itinerary deleted, remaining slots: \(planLimitService.remainingPlans)")
             
         } catch {
@@ -532,6 +587,11 @@ class ItineraryListViewModel: ObservableObject {
             
             // Update plan count
             await planLimitService.decrementPlanCount()
+            
+            AnalyticsService.shared.logItineraryDeleted(
+                      location: itinerary.title,
+                      duration: itinerary.totalDuration
+                  )
             
             print("✅ Multi-city itinerary deleted")
             
