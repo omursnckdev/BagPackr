@@ -1,5 +1,5 @@
 //
-//  MultiCityPlannerView.swift - COMPLETE WITH LOCALIZATION
+//  MultiCityPlannerView.swift - WITH AD SUPPORT
 //  BagPackr
 //
 
@@ -8,6 +8,7 @@ import SwiftUI
 struct MultiCityPlannerView: View {
     @StateObject private var viewModel = MultiCityPlannerViewModel()
     @StateObject private var limitService = PlanLimitService.shared
+    @StateObject private var adManager = AdManager.shared
     @ObservedObject var itineraryListViewModel: ItineraryListViewModel
     
     @State private var showAddCity = false
@@ -15,6 +16,7 @@ struct MultiCityPlannerView: View {
     @State private var showPremiumSheet = false
     @State private var budgetText = ""
     @State private var isEditingBudget = false
+    @State private var isWaitingForAd = false
     
     // Locale detection
     private var isTurkish: Bool {
@@ -429,32 +431,57 @@ struct MultiCityPlannerView: View {
     // MARK: - Generate Button
     
     private var generateButton: some View {
-        Button(action: handleGenerate) {
-            HStack {
-                if viewModel.isGenerating {
-                    ProgressView()
-                        .tint(.white)
-                    Text("Generating...")
-                } else {
-                    Image(systemName: "sparkles")
-                    Text("Generate Multi-City Trip")
-                }
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: viewModel.canGenerate ? [.blue, .purple] : [.gray, .gray],
-                    startPoint: .leading,
-                    endPoint: .trailing
+        Button(action: handleGenerateButtonTap) {
+            buttonContent
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: buttonGradientColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 )
-            )
-            .foregroundColor(.white)
-            .cornerRadius(15)
-            .shadow(color: viewModel.canGenerate ? .blue.opacity(0.4) : .clear, radius: 10)
+                .foregroundColor(.white)
+                .cornerRadius(15)
+                .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
         }
-        .disabled(!viewModel.canGenerate || viewModel.isGenerating)
+        .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd)
+    }
+    
+    @ViewBuilder
+    private var buttonContent: some View {
+        HStack {
+            if viewModel.isGenerating || isWaitingForAd {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(0.9)
+                
+                if isWaitingForAd {
+                    Text("Loading ad...")
+                        .fontWeight(.semibold)
+                } else {
+                    Text("Creating your journey...")
+                        .fontWeight(.semibold)
+                }
+            } else {
+                Image(systemName: "sparkles")
+                Text("Generate Multi-City Trip")
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+    
+    private var buttonGradientColors: [Color] {
+        if viewModel.canGenerate && !viewModel.isGenerating && !isWaitingForAd {
+            return [.blue, .purple]
+        } else {
+            return [.gray, .gray]
+        }
+    }
+    
+    private var buttonShadowColor: Color {
+        (viewModel.canGenerate && !viewModel.isGenerating && !isWaitingForAd) ? .blue.opacity(0.4) : .clear
     }
     
     // MARK: - Helper Functions
@@ -486,7 +513,7 @@ struct MultiCityPlannerView: View {
     
     // MARK: - Actions
     
-    private func handleGenerate() {
+    private func handleGenerateButtonTap() {
         if !limitService.canGeneratePlan() {
             showLimitWarning = true
             return
@@ -495,6 +522,45 @@ struct MultiCityPlannerView: View {
         Task {
             await viewModel.generateMultiCityTrip()
             try? await limitService.incrementPlanCount()
+            await waitForAdAndShow()
+        }
+    }
+    
+    private func waitForAdAndShow() async {
+        let maxWaitTime: TimeInterval = 4.0
+        let checkInterval: TimeInterval = 0.2
+        var elapsed: TimeInterval = 0.0
+        
+        if adManager.isAdReady {
+            print("✅ Ad already ready, showing immediately")
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                AdManager.shared.showAd()
+            }
+            return
+        }
+        
+        await MainActor.run {
+            isWaitingForAd = true
+        }
+        print("⏳ Waiting for ad to load...")
+        
+        while !adManager.isAdReady && elapsed < maxWaitTime {
+            try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
+            elapsed += checkInterval
+        }
+        
+        await MainActor.run {
+            isWaitingForAd = false
+        }
+        
+        await MainActor.run {
+            if adManager.isAdReady {
+                print("✅ Ad loaded! Showing now...")
+                AdManager.shared.showAd()
+            } else {
+                print("⏱️ Timeout: Ad couldn't load in \(maxWaitTime) seconds")
+            }
         }
     }
     
@@ -576,4 +642,3 @@ struct SaveSuccessNotification: View {
         .padding(.horizontal)
     }
 }
-
