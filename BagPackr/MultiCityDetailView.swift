@@ -8,11 +8,19 @@ import SwiftUI
 struct MultiCityDetailView: View {
     let multiCity: MultiCityItinerary
     @ObservedObject var viewModel: ItineraryListViewModel
+    @StateObject private var limitService = PlanLimitService.shared
     
     @State private var selectedCityIndex = 0
     @State private var showDeleteAlert = false
     @State private var showShareSheet = false
-    @State private var shareText = ""
+    @State private var showPremiumAlert = false
+    @State private var showPremiumSheet = false
+    @State private var shareItems: [Any] = []
+    @State private var isGeneratingPDF = false
+    
+    // NEW: Interest filtering
+    @State private var selectedInterestsFilter: Set<String> = []
+    
     @Environment(\.dismiss) var dismiss
 
     private var selectedCity: CityStop? {
@@ -28,6 +36,33 @@ struct MultiCityDetailView: View {
         guard let itinerary else { return 0 }
         return itinerary.dailyPlans.reduce(0) { total, plan in
             total + plan.activities.reduce(0) { $0 + $1.cost }
+        }
+    }
+    
+    // NEW: Filter daily plans based on selected interests
+    private func filteredDailyPlans(for itinerary: Itinerary) -> [DailyPlan] {
+        guard !selectedInterestsFilter.isEmpty else {
+            return itinerary.dailyPlans
+        }
+        
+        return itinerary.dailyPlans.compactMap { plan -> DailyPlan? in
+            let filteredActivities = plan.activities.filter { activity in
+                // Check if the activity type matches any selected interest
+                return selectedInterestsFilter.contains { interest in
+                    activity.type.localizedCaseInsensitiveContains(interest) ||
+                    interest.localizedCaseInsensitiveContains(activity.type)
+                }
+            }
+            
+            // Only return the plan if it has matching activities
+            guard !filteredActivities.isEmpty else { return nil }
+            
+            // Create a new DailyPlan with filtered activities
+            return DailyPlan(
+                id: plan.id,
+                day: plan.day,
+                activities: filteredActivities
+            )
         }
     }
 
@@ -53,16 +88,27 @@ struct MultiCityDetailView: View {
                     cityHeaderCard(for: city)
                 }
                 
+                // Filter indicator
+                if !selectedInterestsFilter.isEmpty {
+                    filterIndicator
+                }
+                
                 actionButtons
                 
                 if let itinerary = selectedItinerary {
-                    ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
-                        EnhancedDayPlanCard(
-                            dayNumber: index + 1,
-                            plan: plan,
-                            location: selectedCity?.location.name ?? "",
-                            itinerary: itinerary
-                        )
+                    let plansToShow = filteredDailyPlans(for: itinerary)
+                    
+                    if plansToShow.isEmpty {
+                        emptyFilterState
+                    } else {
+                        ForEach(Array(plansToShow.enumerated()), id: \.element.id) { index, plan in
+                            EnhancedDayPlanCard(
+                                dayNumber: itinerary.dailyPlans.firstIndex(where: { $0.id == plan.id })! + 1,
+                                plan: plan,
+                                location: selectedCity?.location.name ?? "",
+                                itinerary: itinerary
+                            )
+                        }
                     }
                 }
             }
@@ -71,27 +117,31 @@ struct MultiCityDetailView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(multiCity.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: shareTrip) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-            }
-        }
-        .alert(isTR ? "Geziyi Sil" : "Delete Trip", isPresented: $showDeleteAlert) {
-            Button(isTR ? "Vazgeç" : "Cancel", role: .cancel) { }
+        .alert("Delete Multi-City Trip", isPresented: $showDeleteAlert) {
             Button(isTR ? "Sil" : "Delete", role: .destructive) {
                 deleteTrip()
             }
+            Button(isTR ? "İptal" : "Cancel", role: .cancel) { }
         } message: {
-            Text(isTR
-                 ? "Bu çok şehirli geziyi silmek istediğine emin misin?"
-                 : "Are you sure you want to delete this multi-city trip?")
+            Text(isTR ? "Bu gezinizi silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this multi-city trip?")
+        }
+        .alert("Premium Feature", isPresented: $showPremiumAlert) {
+            Button("Upgrade to Premium") {
+                showPremiumSheet = true
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("PDF export is available for premium members. Upgrade now to export your trips!")
         }
         .sheet(isPresented: $showShareSheet) {
-            ShareSheet(items: [shareText])
+            ShareSheet(items: shareItems)
+        }
+        .sheet(isPresented: $showPremiumSheet) {
+            PremiumUpgradeView()
         }
     }
+    
+    // MARK: - Main Header Card
     
     private var mainHeaderCard: some View {
         ZStack {
@@ -138,6 +188,8 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - City Tabs Section
+    
     private var cityTabsSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -158,6 +210,8 @@ struct MultiCityDetailView: View {
             .padding(.horizontal)
         }
     }
+    
+    // MARK: - City Header Card
     
     private func cityHeaderCard(for city: CityStop) -> some View {
         ZStack {
@@ -189,16 +243,24 @@ struct MultiCityDetailView: View {
                     }
                     .font(.subheadline)
 
+                    // Tappable interests for filtering
                     if !multiCity.interests.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack {
+                            HStack(spacing: 8) {
                                 ForEach(multiCity.interests, id: \.self) { interest in
-                                    Text(LocalizedStringKey(interest))
-                                        .font(.caption)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.white.opacity(0.3))
-                                        .cornerRadius(15)
+                                    InterestFilterChip(
+                                        interest: interest,
+                                        isSelected: selectedInterestsFilter.contains(interest),
+                                        action: {
+                                            withAnimation(.spring(response: 0.3)) {
+                                                if selectedInterestsFilter.contains(interest) {
+                                                    selectedInterestsFilter.remove(interest)
+                                                } else {
+                                                    selectedInterestsFilter.insert(interest)
+                                                }
+                                            }
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -212,15 +274,86 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - Filter Indicator
+    
+    private var filterIndicator: some View {
+        HStack {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .foregroundColor(.blue)
+            
+            Text(isTR ? "\(selectedInterestsFilter.count) ilgiye göre filtreleniyor" : "Filtering by \(selectedInterestsFilter.count) interest\(selectedInterestsFilter.count == 1 ? "" : "s")")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedInterestsFilter.removeAll()
+                }
+            }) {
+                Text(isTR ? "Temizle" : "Clear")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(10)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Empty Filter State
+    
+    private var emptyFilterState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 50))
+                .foregroundColor(.gray.opacity(0.5))
+            
+            Text(isTR ? "Filtrenize uygun aktivite bulunamadı" : "No activities match your filter")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Text(isTR ? "Farklı ilgi alanları seçin veya filtreyi temizleyin" : "Try selecting different interests or clear the filter")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedInterestsFilter.removeAll()
+                }
+            }) {
+                Text(isTR ? "Filtreyi Temizle" : "Clear Filter")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+        }
+        .padding(.vertical, 60)
+        .frame(maxWidth: .infinity)
+    }
+    
+    // MARK: - Action Buttons
+    
     private var actionButtons: some View {
         HStack(spacing: 12) {
-            ActionButton(icon: "square.and.arrow.up",
-                         title: isTR ? "Paylaş" : "Share",
-                         color: .blue) {
-                shareTrip()
+            ActionButton(
+                icon: isGeneratingPDF ? "hourglass" : "doc.text.fill",
+                title: isGeneratingPDF ? "..." : (limitService.isPremium ? "PDF" : "PDF 👑"),
+                color: .green
+            ) {
+                handlePDFExport()
             }
             .frame(maxWidth: .infinity)
-
+            .disabled(isGeneratingPDF)
+            
             ActionButton(icon: "trash",
                          title: isTR ? "Sil" : "Delete",
                          color: .red) {
@@ -231,8 +364,34 @@ struct MultiCityDetailView: View {
         .padding(.horizontal)
     }
     
+    // MARK: - Actions
+    
+    private func handlePDFExport() {
+        // Check premium status
+        if !limitService.isPremium {
+            showPremiumAlert = true
+            return
+        }
+        
+        isGeneratingPDF = true
+        
+        Task {
+            if let pdfURL = PDFGenerator.shared.generatePDF(for: multiCity) {
+                await MainActor.run {
+                    shareItems = [pdfURL]
+                    showShareSheet = true
+                    isGeneratingPDF = false
+                }
+            } else {
+                await MainActor.run {
+                    isGeneratingPDF = false
+                }
+            }
+        }
+    }
+    
     private func shareTrip() {
-        shareText = generateShareText()
+        shareItems = [generateShareText()]
         showShareSheet = true
     }
 
@@ -267,3 +426,48 @@ struct MultiCityDetailView: View {
         return text
     }
 }
+
+// MARK: - Safe Array Access Extension
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Interest Filter Chip Component
+
+struct InterestFilterChip: View {
+    let interest: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                }
+                
+                Text(LocalizedStringKey(interest))
+                    .font(.caption)
+                    .fontWeight(isSelected ? .semibold : .regular)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                isSelected
+                    ? Color.white.opacity(0.9)
+                    : Color.white.opacity(0.3)
+            )
+            .foregroundColor(isSelected ? .blue : .white)
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.white, lineWidth: isSelected ? 2 : 0)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+

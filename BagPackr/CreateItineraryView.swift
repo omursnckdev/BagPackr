@@ -82,7 +82,7 @@ struct CreateItineraryView: View {
                 }
             }
             .navigationTitle("Create Itinerary")
-            .sheet(isPresented: $showMapPicker) {
+            .fullScreenCover(isPresented: $showMapPicker) {
                 MapPickerView(selectedLocation: $viewModel.selectedLocation)
             }
             .sheet(item: $viewModel.generatedItinerary) { itinerary in
@@ -93,8 +93,52 @@ struct CreateItineraryView: View {
             } message: {
                 Text(viewModel.errorMessage)
             }
+            .overlay(alignment: .top) {
+                         if viewModel.showSaveSuccess {
+                             SaveSuccessNotification()
+                                 .padding(.top, 50)  // Below navigation bar
+                                 .transition(.move(edge: .top).combined(with: .opacity))
+                                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.showSaveSuccess)
+                         }
+                     }
         }
     }
+    // ✅✅✅ ADD THIS ENTIRE STRUCT AT THE BOTTOM OF FILE ✅✅✅
+    struct SaveSuccessNotification: View {
+        var body: some View {
+            HStack(spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Itinerary Saved!")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("Your trip has been saved successfully")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 15)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.green, Color.green.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .shadow(color: .green.opacity(0.3), radius: 10, y: 5)
+            )
+            .padding(.horizontal)
+        }
+    }
+    // ✅✅✅ END ✅✅✅
     
     // MARK: - View Components
     
@@ -172,6 +216,8 @@ struct CreateItineraryView: View {
     @State private var budgetText: String = ""
     @State private var isEditingBudget = false
     
+    // Replace the budgetCard in CreateItineraryView.swift
+
     private var budgetCard: some View {
         ModernCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -179,12 +225,13 @@ struct CreateItineraryView: View {
                     .font(.headline)
                     .foregroundColor(.blue)
                 
-                HStack {
+                HStack(alignment: .top, spacing: 0) {
+                    // Left side - Budget input
                     HStack(spacing: 0) {
                         Text(currencySymbol)
                             .font(.system(size: 36, weight: .bold))
                             .foregroundColor(.green)
-                            .frame(width: 30)
+                            .frame(width: 30, alignment: .leading)
                         
                         TextField("", text: $budgetText)
                             .font(.system(size: 36, weight: .bold))
@@ -215,17 +262,24 @@ struct CreateItineraryView: View {
                     
                     Spacer()
                     
-                    VStack(alignment: .trailing) {
-                        let totalBudget = Int(viewModel.budgetPerDay * Double(viewModel.duration))
-                        VStack(spacing: 4) {
-                            Text("Total:")
-                            Text("\(currencySymbol)\(totalBudget)")
+                    // Right side - Total (Fixed width)
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Total:")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        
+                        HStack(spacing: 4) {
+                            Text(currencySymbol)
+                                .font(.headline)
+                            Text("\(Int(viewModel.budgetPerDay * Double(viewModel.duration)))")
+                                .font(.headline)
                         }
-                        .font(.headline)
                         .foregroundColor(.primary)
+                        .frame(width: 80, alignment: .trailing) // ✅ Fixed width
                     }
                 }
                 
+                // Slider only (no labels)
                 Slider(
                     value: Binding(
                         get: { min(viewModel.budgetPerDay, maxBudget) },
@@ -239,20 +293,7 @@ struct CreateItineraryView: View {
                     step: budgetStep
                 )
                 .accentColor(.green)
-                
-                HStack {
-                    Text(minBudgetText)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    Spacer()
-                    Text(viewModel.budgetPerDay > maxBudget ? "Custom" : "Budget")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    Spacer()
-                    Text(maxBudgetText)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
+                .padding(.top, 8)
             }
         }
         .onAppear {

@@ -187,6 +187,7 @@ class CreateItineraryViewModel: ObservableObject {
     @Published var generatedItinerary: Itinerary?
     @Published var showError = false
     @Published var errorMessage = ""
+    @Published var showSaveSuccess = false
     
     let builtInInterests = [
         "Beaches", "Nightlife", "Restaurants", "Museums",
@@ -241,6 +242,10 @@ class CreateItineraryViewModel: ObservableObject {
                 
                 // FIX #3: Reload the list after saving
                 await itineraryListViewModel.loadItineraries()
+                showSaveSuccess = true
+                
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                showSaveSuccess = false
                 
                 generatedItinerary = itinerary
                 isGenerating = false

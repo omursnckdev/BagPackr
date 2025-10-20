@@ -91,11 +91,7 @@ struct ItineraryResultView: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: shareItinerary) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
+              
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(items: [shareText])

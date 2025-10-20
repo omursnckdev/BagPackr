@@ -37,18 +37,43 @@ struct MultiCityGroupPlanRow: View {
                     .foregroundColor(.gray)
                     .lineLimit(1)
                 
-                HStack(spacing: 12) {
-                    Label("\(group.members.count) members", systemImage: "person.2")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                // Fixed: More flexible layout with wrapping
+                FlexibleChipLayout(spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 10))
+                        Text("\(group.members.count) members")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(6)
                     
-                    Label("\(group.multiCityItinerary.citiesCount) cities", systemImage: "map")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "map")
+                            .font(.system(size: 10))
+                        Text("\(group.multiCityItinerary.citiesCount) cities")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
                     
-                    Label("\(group.multiCityItinerary.totalDuration) days", systemImage: "calendar")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 10))
+                        Text("\(group.multiCityItinerary.totalDuration) days")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
                 }
             }
             

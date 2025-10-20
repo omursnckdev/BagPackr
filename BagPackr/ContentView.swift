@@ -15,6 +15,15 @@ import GoogleMobileAds
 import FirebaseMessaging
 import UserNotifications
 
+import SwiftUI
+import FirebaseCore
+import GoogleMaps
+import GooglePlaces
+import GoogleMobileAds
+import FirebaseMessaging
+import UserNotifications
+import StoreKit
+
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
@@ -36,7 +45,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         Messaging.messaging().delegate = self
         
         return true
-        
     }
     
     func application(_ application: UIApplication,
@@ -82,6 +90,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         completionHandler()
     }
 }
+
 @main
 struct BagPackrApp: App {
     
@@ -89,31 +98,57 @@ struct BagPackrApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     init() {
+        // Initialize Firebase
         FirebaseApp.configure()
+        
+        // Initialize Google Maps & Places
         GMSServices.provideAPIKey("AIzaSyC5wDKS2_3NMA8mxKhEFzktmiPCY4atE10")
         GMSPlacesClient.provideAPIKey("AIzaSyC5wDKS2_3NMA8mxKhEFzktmiPCY4atE10")
+        
+        // Initialize Google Mobile Ads
         MobileAds.shared.start()
         
+        // ✅ Initialize StoreKit Manager
+        _ = StoreManager.shared
+        print("✅ StoreKit Manager initialized")
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authViewModel)
+                .task {
+                    // ✅ Check premium status when app launches
+                    await PlanLimitService.shared.checkPremiumStatus()
+                }
         }
     }
-}
+}// MARK: - Content View
+// Update ContentView in ContentView.swift
 
-// MARK: - Content View
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showOnboarding = false
     
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
-                MainTabView()
+                if hasSeenOnboarding {
+                    MainTabView()
+                } else {
+                    OnboardingView {
+                        hasSeenOnboarding = true
+                    }
+                }
             } else {
                 AuthView()
+            }
+        }
+        .onAppear {
+            // Show onboarding only once after first login
+            if authViewModel.isAuthenticated && !hasSeenOnboarding {
+                showOnboarding = true
             }
         }
     }
@@ -749,27 +784,46 @@ class FirestoreService {
     func deleteGroup(_ id: String) async throws {
         try await db.collection("groupPlans").document(id).delete()
     }
-    
-    // MARK: - Expenses + Settlements
+
+
+    // MARK: - Expenses + Settlements (Fixed for Multi-City Support)
+
     func addExpenseToGroup(expense: GroupExpense) async throws {
+        print("🔵 Adding expense to group: \(expense.groupId)")
+        
         let encoder = Firestore.Encoder()
         let data = try encoder.encode(expense)
         
-        try await db.collection("groupPlans")
+        // ✅ Try to find group in either collection
+        let collectionName = try await getGroupCollectionName(groupId: expense.groupId)
+        print("✅ Found group in collection: \(collectionName)")
+        
+        try await db.collection(collectionName)
             .document(expense.groupId)
             .collection("expenses")
             .document(expense.id)
             .setData(data)
         
+        print("✅ Expense added successfully")
+        
         // 🔄 Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: expense.groupId)
-        let group = try await getGroupById(groupId: expense.groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: expense.groupId, settlements: newSettlements)
+        let expenses = try await fetchGroupExpenses(groupId: expense.groupId, collectionName: collectionName)
+        let members = try await getGroupMembers(groupId: expense.groupId, collectionName: collectionName)
+        let newSettlements = calculateSettlements(expenses: expenses, members: members)
+        try await saveSettlements(groupId: expense.groupId, settlements: newSettlements, collectionName: collectionName)
+        
+        print("✅ Settlements recalculated")
     }
-    
-    func fetchGroupExpenses(groupId: String) async throws -> [GroupExpense] {
-        let snapshot = try await db.collection("groupPlans")
+
+    func fetchGroupExpenses(groupId: String, collectionName: String? = nil) async throws -> [GroupExpense] {
+        let collection: String
+        if let collectionName = collectionName {
+            collection = collectionName
+        } else {
+            collection = try await getGroupCollectionName(groupId: groupId)
+        }
+        
+        let snapshot = try await db.collection(collection)
             .document(groupId)
             .collection("expenses")
             .getDocuments()
@@ -779,23 +833,27 @@ class FirestoreService {
             try? decoder.decode(GroupExpense.self, from: doc.data())
         }.sorted { $0.date > $1.date }
     }
-    
+
     func deleteExpense(groupId: String, expenseId: String) async throws {
-        try await db.collection("groupPlans")
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        try await db.collection(collectionName)
             .document(groupId)
             .collection("expenses")
             .document(expenseId)
             .delete()
         
         // 🔄 Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: groupId)
-        let group = try await getGroupById(groupId: groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: groupId, settlements: newSettlements)
+        let expenses = try await fetchGroupExpenses(groupId: groupId, collectionName: collectionName)
+        let members = try await getGroupMembers(groupId: groupId, collectionName: collectionName)
+        let newSettlements = calculateSettlements(expenses: expenses, members: members)
+        try await saveSettlements(groupId: groupId, settlements: newSettlements, collectionName: collectionName)
     }
-    
+
     func updateExpense(groupId: String, expenseId: String, description: String, amount: Double, category: ExpenseCategory) async throws {
-        try await db.collection("groupPlans")
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        try await db.collection(collectionName)
             .document(groupId)
             .collection("expenses")
             .document(expenseId)
@@ -806,26 +864,36 @@ class FirestoreService {
             ])
         
         // Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: groupId)
-        let group = try await getGroupById(groupId: groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: groupId, settlements: newSettlements)
+        let expenses = try await fetchGroupExpenses(groupId: groupId, collectionName: collectionName)
+        let members = try await getGroupMembers(groupId: groupId, collectionName: collectionName)
+        let newSettlements = calculateSettlements(expenses: expenses, members: members)
+        try await saveSettlements(groupId: groupId, settlements: newSettlements, collectionName: collectionName)
     }
-    
-    // MARK: - Settlements
-    func saveSettlements(groupId: String, settlements: [Settlement]) async throws {
+
+    // MARK: - Settlements (Fixed)
+
+    func saveSettlements(groupId: String, settlements: [Settlement], collectionName: String? = nil) async throws {
+        let collection: String
+        if let collectionName = collectionName {
+            collection = collectionName
+        } else {
+            collection = try await getGroupCollectionName(groupId: groupId)
+        }
+        
         let encoder = Firestore.Encoder()
         let data = try settlements.map { try encoder.encode($0) }
         
-        try await db.collection("groupPlans")
+        try await db.collection(collection)
             .document(groupId)
             .collection("settlements")
             .document("current")
             .setData(["items": data])
     }
-    
+
     func fetchSettlements(groupId: String) async throws -> [Settlement] {
-        let snapshot = try await db.collection("groupPlans")
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        let snapshot = try await db.collection(collectionName)
             .document(groupId)
             .collection("settlements")
             .document("current")
@@ -838,6 +906,145 @@ class FirestoreService {
         
         let decoder = Firestore.Decoder()
         return try items.compactMap { try decoder.decode(Settlement.self, from: $0) }
+    }
+    func markSettlementAsPaid(groupId: String, settlementId: String) async throws {
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        // Get current settlements
+        var settlements = try await fetchSettlements(groupId: groupId)
+        
+        // Find and update the settlement
+        if let index = settlements.firstIndex(where: { $0.id == settlementId }) {
+            settlements[index].isSettled = true
+            settlements[index].settledAt = Date()
+            
+            // Save updated settlements
+            try await saveSettlements(groupId: groupId, settlements: settlements, collectionName: collectionName)
+        }
+    }
+
+    func unmarkSettlement(groupId: String, settlementId: String) async throws {
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        var settlements = try await fetchSettlements(groupId: groupId)
+        
+        if let index = settlements.firstIndex(where: { $0.id == settlementId }) {
+            settlements[index].isSettled = false
+            settlements[index].settledAt = nil
+            
+            try await saveSettlements(groupId: groupId, settlements: settlements, collectionName: collectionName)
+        }
+    }
+
+    func listenToGroupExpenses(groupId: String, completion: @escaping ([GroupExpense]) -> Void) -> ListenerRegistration {
+        print("🎧 Setting up expense listener for group: \(groupId)")
+        
+        // Create a container to hold the listener reference
+        class ListenerContainer {
+            var listener: ListenerRegistration?
+        }
+        let container = ListenerContainer()
+        
+        Task {
+            do {
+                let collectionName = try await getGroupCollectionName(groupId: groupId)
+                print("🎧 Listener using collection: \(collectionName)")
+                
+                await MainActor.run {
+                    container.listener = db.collection(collectionName)
+                        .document(groupId)
+                        .collection("expenses")
+                        .addSnapshotListener { snapshot, error in
+                            if let error = error {
+                                print("❌ Error in expense listener: \(error)")
+                                return
+                            }
+                            
+                            guard let documents = snapshot?.documents else {
+                                print("⚠️ No documents in snapshot")
+                                completion([])
+                                return
+                            }
+                            
+                            print("📦 Received \(documents.count) expense documents")
+                            
+                            let decoder = Firestore.Decoder()
+                            let expenses = documents.compactMap { doc -> GroupExpense? in
+                                try? decoder.decode(GroupExpense.self, from: doc.data())
+                            }.sorted { $0.date > $1.date }
+                            
+                            print("✅ Decoded \(expenses.count) expenses")
+                            completion(expenses)
+                        }
+                    print("✅ Listener attached successfully")
+                }
+            } catch {
+                print("❌ Error setting up expense listener: \(error)")
+                completion([])
+            }
+        }
+        
+        return DummyListenerRegistration(removeHandler: {
+            print("🔇 Removing expense listener")
+            container.listener?.remove()
+        })
+    }
+
+    // MARK: - Dummy Listener Registration
+    private class DummyListenerRegistration: NSObject, ListenerRegistration {
+        private let removeHandler: () -> Void
+        
+        init(removeHandler: @escaping () -> Void) {
+            self.removeHandler = removeHandler
+            super.init()
+        }
+        
+        func remove() {
+            removeHandler()
+        }
+    }
+
+    // MARK: - Helper Functions
+
+    /// Determines which collection a group belongs to (groupPlans or multiCityGroupPlans)
+    private func getGroupCollectionName(groupId: String) async throws -> String {
+        print("🔍 Searching for group: \(groupId)")
+        
+        // Check regular groups first
+        let regularDoc = try await db.collection("groupPlans").document(groupId).getDocument()
+        if regularDoc.exists {
+            print("✅ Found in groupPlans")
+            return "groupPlans"
+        }
+        
+        // Check multi-city groups
+        let multiCityDoc = try await db.collection("multiCityGroupPlans").document(groupId).getDocument()
+        if multiCityDoc.exists {
+            print("✅ Found in multiCityGroupPlans")
+            return "multiCityGroupPlans"
+        }
+        
+        print("❌ Group not found in any collection")
+        throw NSError(domain: "Firestore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Group not found"])
+    }
+
+    /// Gets members from either type of group
+    private func getGroupMembers(groupId: String, collectionName: String) async throws -> [GroupMember] {
+        let document = try await db.collection(collectionName).document(groupId).getDocument()
+        
+        guard let data = document.data() else {
+            throw NSError(domain: "Firestore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Group not found"])
+        }
+        
+        let decoder = Firestore.Decoder()
+        
+        if collectionName == "groupPlans" {
+            let group = try decoder.decode(GroupPlan.self, from: data)
+            return group.members
+        } else {
+            let group = try decoder.decode(MultiCityGroupPlan.self, from: data)
+            return group.members
+        }
     }
     
     func calculateSettlements(expenses: [GroupExpense], members: [GroupMember]) -> [Settlement] {
@@ -888,33 +1095,7 @@ class FirestoreService {
         
         return settlements
     }
-    
-    func listenToGroupExpenses(groupId: String, completion: @escaping ([GroupExpense]) -> Void) -> ListenerRegistration {
-        let listener = db.collection("groupPlans")
-            .document(groupId)
-            .collection("expenses")
-            .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    print("Error listening to expenses: \(error)")
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    completion([])
-                    return
-                }
-                
-                let decoder = Firestore.Decoder()
-                let expenses = documents.compactMap { doc -> GroupExpense? in
-                    try? decoder.decode(GroupExpense.self, from: doc.data())
-                }.sorted { $0.date > $1.date }
-                
-                completion(expenses)
-            }
-        
-        return listener
-    }
-    
+
     
     
     

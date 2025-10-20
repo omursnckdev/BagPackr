@@ -343,17 +343,17 @@ struct Balance {
     var amount: Double
 }
 
-struct Settlement: Identifiable, Codable {
-    let id: String
+
+struct Settlement: Codable, Identifiable {
+    var id = UUID().uuidString
     let from: String
     let to: String
     let amount: Double
-
-    init(id: String = UUID().uuidString, from: String, to: String, amount: Double) {
-        self.id = id
-        self.from = from
-        self.to = to
-        self.amount = amount
+    var isSettled: Bool = false
+    var settledAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, from, to, amount, isSettled, settledAt
     }
 }
 

@@ -1,21 +1,12 @@
 //
-//  MapPickerView.swift
+//  MapPickerView.swift - Fix gray area while keeping NavigationView
 //  BagPackr
-//
-//  Created by Ömür Şenocak on 16.10.2025.
 //
 
 import SwiftUI
-import FirebaseCore
 import GoogleMaps
 import GooglePlaces
-import MapKit
-import Combine
-import GoogleMobileAds
-import FirebaseMessaging
-import UserNotifications
 
-// MARK: - Map Picker View
 struct MapPickerView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selectedLocation: LocationData?
@@ -31,16 +22,16 @@ struct MapPickerView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Map - Background
+                // ✅ Map - CRITICAL: Place BEFORE VStack and extend to top
                 GoogleMapView(
                     center: $mapCenter,
                     selectedCoordinate: $selectedCoordinate,
                     placeName: $placeName,
                     isLocationLocked: $isLocationLocked
                 )
-                .ignoresSafeArea()
+                .edgesIgnoringSafeArea(.all)  // ✅ Extends behind navigation bar
                 
-                // Search bar and results - Always on top
+                // Search bar and results - Overlay on top
                 VStack {
                     VStack(spacing: 0) {
                         // Search Bar
@@ -53,7 +44,6 @@ struct MapPickerView: View {
                                 .autocorrectionDisabled()
                                 .foregroundColor(.primary)
                                 .onSubmit {
-                                    // Trigger search when user presses Enter/Return
                                     performSearch()
                                 }
                             
@@ -147,8 +137,10 @@ struct MapPickerView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            // ✅ CRITICAL: This makes the content extend behind the nav bar
+            .toolbarBackground(.hidden, for: .navigationBar)  // Makes navbar transparent
+            .background(Color.clear)  // Ensure no gray background
             .onChange(of: searchText) { oldValue, newValue in
-                // Debounce the search - wait 0.3 seconds after user stops typing
                 searchTask?.cancel()
                 
                 guard !newValue.isEmpty else {
@@ -179,9 +171,7 @@ struct MapPickerView: View {
         
         let placesClient = GMSPlacesClient.shared()
         let filter = GMSAutocompleteFilter()
-        // Remove restrictive types or use nil for all types
-        filter.types = nil  // This allows all place types including cities
-        // Or you can try: filter.types = ["geocode"] for addresses and cities
+        filter.types = nil
         
         placesClient.findAutocompletePredictions(fromQuery: searchQuery, filter: filter, sessionToken: nil) { results, error in
             if let error = error {
