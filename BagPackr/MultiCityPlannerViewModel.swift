@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import FirebaseAuth
 // MARK: - Multi-City Planner ViewModel
+// Update MultiCityPlannerViewModel in ViewModels.swift (or MultiCityPlannerViewModel.swift)
 
 @MainActor
 class MultiCityPlannerViewModel: ObservableObject {
@@ -20,6 +21,11 @@ class MultiCityPlannerViewModel: ObservableObject {
     @Published var generatedMultiCity: MultiCityItinerary?
     @Published var showError = false
     @Published var errorMessage = ""
+    @Published var showSaveSuccess = false
+    
+    // ✅ NEW: Add custom interests support
+    @Published var customInterestInput = ""
+    @Published var customInterests: [String] = []
     
     let availableInterests = [
         "Beaches",
@@ -71,6 +77,22 @@ class MultiCityPlannerViewModel: ObservableObject {
         }
     }
     
+    // ✅ NEW: Add custom interest
+    func addCustomInterest() {
+        let trimmed = customInterestInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        customInterests.append(trimmed)
+        selectedInterests.insert(trimmed)
+        customInterestInput = ""
+    }
+    
+    // ✅ NEW: Remove custom interest
+    func removeCustomInterest(_ interest: String) {
+        customInterests.removeAll { $0 == interest }
+        selectedInterests.remove(interest)
+    }
+    
     func generateMultiCityTrip() async {
         isGenerating = true
         defer { isGenerating = false }
@@ -103,6 +125,10 @@ class MultiCityPlannerViewModel: ObservableObject {
             // Save to Firestore
             try await FirestoreService.shared.saveMultiCityItinerary(multiCity)
             
+            showSaveSuccess = true
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            showSaveSuccess = false
+            
             print("✅ Multi-city trip generated successfully")
             generatedMultiCity = multiCity
             
@@ -117,6 +143,8 @@ class MultiCityPlannerViewModel: ObservableObject {
         tripTitle = ""
         cityStops = []
         selectedInterests = []
+        customInterests = []
+        customInterestInput = ""
         budgetPerDay = 100
         generatedMultiCity = nil
     }

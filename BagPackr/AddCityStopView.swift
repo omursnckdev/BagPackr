@@ -102,9 +102,10 @@ struct AddCityStopView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .sheet(isPresented: $showMapPicker) {
+            .fullScreenCover(isPresented: $showMapPicker) {
                 MapPickerView(selectedLocation: $selectedLocation)
             }
+            
         }
     }
     

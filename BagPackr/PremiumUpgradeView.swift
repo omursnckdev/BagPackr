@@ -1,5 +1,5 @@
 //
-//  PremiumUpgradeView.swift
+//  PremiumUpgradeView.swift - FIXED
 //  BagPackr
 //
 
@@ -13,6 +13,7 @@ struct PremiumUpgradeView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var showSuccess = false
+    @State private var loadAttempts = 0
     
     var body: some View {
         NavigationView {
@@ -25,19 +26,12 @@ struct PremiumUpgradeView: View {
                     featuresSection
                     
                     // Pricing
-                    if storeManager.isLoading {
-                        ProgressView()
-                            .padding()
-                    } else if storeManager.products.isEmpty {
-                        Text("Loading products...")
-                            .foregroundColor(.gray)
-                            .padding()
-                    } else {
-                        pricingSection
-                    }
+                    productsSection
                     
                     // Subscribe button
-                    subscribeButton
+                    if !storeManager.products.isEmpty {
+                        subscribeButton
+                    }
                     
                     // Restore purchases button
                     Button(action: handleRestore) {
@@ -56,7 +50,12 @@ struct PremiumUpgradeView: View {
                 }
             }
             .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) { }
+                Button("Retry") {
+                    Task {
+                        await loadProductsWithRetry()
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
@@ -70,11 +69,63 @@ struct PremiumUpgradeView: View {
         }
         .onAppear {
             Task {
-                await storeManager.loadProducts()
-                if !storeManager.products.isEmpty {
-                    selectedProduct = storeManager.products.first
-                }
+                await loadProductsWithRetry()
             }
+        }
+    }
+    
+    // MARK: - Products Section with Better Error Handling
+    
+    @ViewBuilder
+    private var productsSection: some View {
+        if storeManager.isLoading {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text("Loading products...")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+        } else if storeManager.products.isEmpty {
+            VStack(spacing: 16) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 40))
+                    .foregroundColor(.orange)
+                
+                Text("Unable to load products")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("Please check your internet connection and try again")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Button(action: {
+                    Task {
+                        await loadProductsWithRetry()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Retry")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+        } else {
+            pricingSection
         }
     }
     
@@ -202,6 +253,32 @@ struct PremiumUpgradeView: View {
     }
     
     // MARK: - Actions
+    
+    private func loadProductsWithRetry() async {
+        loadAttempts += 1
+        
+        do {
+            await storeManager.loadProducts()
+            
+            if !storeManager.products.isEmpty {
+                selectedProduct = storeManager.products.first
+                loadAttempts = 0
+            } else if loadAttempts < 3 {
+                // Retry after a delay if products are empty
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                await loadProductsWithRetry()
+            } else {
+                // Show error after 3 attempts
+                errorMessage = "Could not load products. Please check:\n• Internet connection\n• App Store Connect configuration\n• Try again later"
+                showError = true
+                loadAttempts = 0
+            }
+        } catch {
+            errorMessage = "Failed to load products: \(error.localizedDescription)"
+            showError = true
+            loadAttempts = 0
+        }
+    }
     
     private func handleSubscribe() {
         guard let product = selectedProduct else { return }

@@ -2,11 +2,8 @@
 //  GroupPlanRow.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
-
 
 // MARK: - Group Plan Row Component
 struct GroupPlanRow: View {
@@ -51,6 +48,27 @@ struct GroupPlanRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                
+                // Interest chips
+                if !group.itinerary.interests.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(group.itinerary.interests.prefix(3), id: \.self) { interest in
+                                FlexibleChip(text: interest)
+                            }
+                            
+                            if group.itinerary.interests.count > 3 {
+                                Text("+\(group.itinerary.interests.count - 3)")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
+                }
             }
             
             Spacer()
@@ -63,5 +81,24 @@ struct GroupPlanRow: View {
         .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+}
+
+// MARK: - Flexible Chip Component
+struct FlexibleChip: View {
+    let text: String
+    var backgroundColor: Color = .blue.opacity(0.1)
+    var textColor: Color = .blue
+    
+    var body: some View {
+        Text(LocalizedStringKey(text))
+            .font(.caption2)
+            .fontWeight(.medium)
+            .foregroundColor(textColor)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(backgroundColor)
+            .cornerRadius(8)
+            .lineLimit(1)
     }
 }

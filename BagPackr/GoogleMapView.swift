@@ -25,6 +25,17 @@ struct GoogleMapView: UIViewRepresentable {
         let camera = GMSCameraPosition.camera(withLatitude: center.latitude, longitude: center.longitude, zoom: 2.0)
         let mapView = GMSMapView.map(withFrame: .zero, camera: camera)
         mapView.delegate = context.coordinator
+        
+        // ✅ CRITICAL FIX: Prevent gray areas when zooming out
+        mapView.setMinZoom(1.5, maxZoom: 20)
+        
+        // ✅ Additional settings to improve map rendering
+        mapView.settings.setAllGesturesEnabled(true)
+        mapView.settings.zoomGestures = true
+        mapView.settings.scrollGestures = true
+        mapView.settings.compassButton = true
+        mapView.mapType = .normal
+        
         return mapView
     }
     

@@ -19,6 +19,9 @@ struct ItineraryDetailView: View {
     @State private var shareItems: [Any] = []
     @State private var isGeneratingPDF = false
     
+    // NEW: Interest filtering
+    @State private var selectedInterestsFilter: Set<String> = []
+    
     @Environment(\.dismiss) var dismiss
     
     private var itinerary: Itinerary? {
@@ -31,21 +34,61 @@ struct ItineraryDetailView: View {
         }
     }
     
+    // NEW: Filter daily plans based on selected interests
+    private func filteredDailyPlans(for itinerary: Itinerary) -> [DailyPlan] {
+        guard !selectedInterestsFilter.isEmpty else {
+            return itinerary.dailyPlans
+        }
+        
+        return itinerary.dailyPlans.compactMap { plan -> DailyPlan? in
+            let filteredActivities = plan.activities.filter { activity in
+                // Check if the activity type matches any selected interest
+                return selectedInterestsFilter.contains { interest in
+                    activity.type.localizedCaseInsensitiveContains(interest) ||
+                    interest.localizedCaseInsensitiveContains(activity.type)
+                }
+            }
+            
+            // Only return the plan if it has matching activities
+            guard !filteredActivities.isEmpty else { return nil }
+            
+            // Create a new DailyPlan with filtered activities
+            return DailyPlan(
+                id: plan.id,
+                day: plan.day,
+                activities: filteredActivities
+            )
+        }
+    }
+    
+    
     var body: some View {
         Group {
             if let itinerary = itinerary {
                 ScrollView {
                     VStack(spacing: 20) {
                         headerCard(for: itinerary)
+                        
+                        // Filter indicator
+                        if !selectedInterestsFilter.isEmpty {
+                            filterIndicator
+                        }
+                        
                         actionButtons
                         
-                        ForEach(Array(itinerary.dailyPlans.enumerated()), id: \.element.id) { index, plan in
-                            EnhancedDayPlanCard(
-                                dayNumber: index + 1,
-                                plan: plan,
-                                location: itinerary.location,
-                                itinerary: itinerary
-                            )
+                        let plansToShow = filteredDailyPlans(for: itinerary)
+                        
+                        if plansToShow.isEmpty {
+                            emptyFilterState
+                        } else {
+                            ForEach(Array(plansToShow.enumerated()), id: \.element.id) { index, plan in
+                                EnhancedDayPlanCard(
+                                    dayNumber: itinerary.dailyPlans.firstIndex(where: { $0.id == plan.id })! + 1,
+                                    plan: plan,
+                                    location: itinerary.location,
+                                    itinerary: itinerary
+                                )
+                            }
                         }
                     }
                     .padding(.vertical)
@@ -72,6 +115,14 @@ struct ItineraryDetailView: View {
                     Button("Cancel", role: .cancel) { }
                 } message: {
                     Text("PDF export is available for premium members. Upgrade now to export your itineraries!")
+                }
+                .alert("Delete Itinerary", isPresented: $showDeleteAlert) {
+                    Button("Delete", role: .destructive) {
+                        deleteItinerary()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("Are you sure you want to delete this itinerary? This action cannot be undone.")
                 }
               
             } else {
@@ -119,15 +170,23 @@ struct ItineraryDetailView: View {
                 }
                 .font(.subheadline)
                 
+                // Tappable interests for filtering
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
+                    HStack(spacing: 8) {
                         ForEach(itinerary.interests, id: \.self) { interest in
-                            Text(LocalizedStringKey(interest))
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.3))
-                                .cornerRadius(15)
+                            InterestFilterChip(
+                                interest: interest,
+                                isSelected: selectedInterestsFilter.contains(interest),
+                                action: {
+                                    withAnimation(.spring(response: 0.3)) {
+                                        if selectedInterestsFilter.contains(interest) {
+                                            selectedInterestsFilter.remove(interest)
+                                        } else {
+                                            selectedInterestsFilter.insert(interest)
+                                        }
+                                    }
+                                }
+                            )
                         }
                     }
                 }
@@ -137,6 +196,72 @@ struct ItineraryDetailView: View {
         }
         .cornerRadius(20)
         .padding(.horizontal)
+    }
+    
+    // MARK: - Filter Indicator
+    
+    private var filterIndicator: some View {
+        HStack {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .foregroundColor(.blue)
+            
+            Text("Filtering by \(selectedInterestsFilter.count) interest\(selectedInterestsFilter.count == 1 ? "" : "s")")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedInterestsFilter.removeAll()
+                }
+            }) {
+                Text("Clear")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(10)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Empty Filter State
+    
+    private var emptyFilterState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 50))
+                .foregroundColor(.gray.opacity(0.5))
+            
+            Text("No activities match your filter")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            
+            Text("Try selecting different interests or clear the filter")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedInterestsFilter.removeAll()
+                }
+            }) {
+                Text("Clear Filter")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+        }
+        .padding(.vertical, 60)
+        .frame(maxWidth: .infinity)
     }
     
     // MARK: - Action Buttons
@@ -157,10 +282,7 @@ struct ItineraryDetailView: View {
             }
             .frame(maxWidth: .infinity)
             
-            ActionButton(icon: "person.2.fill", title: "Group", color: .purple) {
-                showGroupShare = true
-            }
-            .frame(maxWidth: .infinity)
+        
             
             ActionButton(icon: "trash", title: "Delete", color: .red) {
                 showDeleteAlert = true
@@ -206,3 +328,6 @@ struct ItineraryDetailView: View {
         }
     }
 }
+
+
+

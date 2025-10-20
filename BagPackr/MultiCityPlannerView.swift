@@ -1,5 +1,5 @@
 //
-//  MultiCityPlannerView.swift
+//  MultiCityPlannerView.swift - COMPLETE WITH LOCALIZATION
 //  BagPackr
 //
 
@@ -13,6 +13,30 @@ struct MultiCityPlannerView: View {
     @State private var showAddCity = false
     @State private var showLimitWarning = false
     @State private var showPremiumSheet = false
+    @State private var budgetText = ""
+    @State private var isEditingBudget = false
+    
+    // Locale detection
+    private var isTurkish: Bool {
+        Locale.current.language.languageCode?.identifier == "tr"
+    }
+    
+    var currencySymbol: String {
+        isTurkish ? "₺" : "$"
+    }
+    
+    // Budget constraints - adapt based on currency
+    private var minBudget: Double {
+        isTurkish ? 1000 : 50
+    }
+    
+    private var maxBudget: Double {
+        isTurkish ? 30000 : 1000
+    }
+    
+    private var budgetStep: Double {
+        isTurkish ? 100 : 10
+    }
     
     var body: some View {
         NavigationView {
@@ -26,9 +50,16 @@ struct MultiCityPlannerView: View {
                         citiesCard
                         budgetCard
                         interestsCard
+                        customInterestsCard
                         generateButton
                     }
                     .padding()
+                }
+                .onTapGesture {
+                    dismissKeyboard()
+                }
+                .onAppear {
+                    initializeBudgetText()
                 }
             }
             .navigationTitle("Multi-City Trip")
@@ -59,8 +90,21 @@ struct MultiCityPlannerView: View {
             } message: {
                 Text(viewModel.errorMessage)
             }
+            .overlay {
+                if viewModel.showSaveSuccess {
+                    VStack {
+                        SaveSuccessNotification()
+                            .padding(.top, 50)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.showSaveSuccess)
+                }
+            }
         }
     }
+    
+    // MARK: - Background Gradient
     
     private var backgroundGradient: some View {
         LinearGradient(
@@ -70,6 +114,8 @@ struct MultiCityPlannerView: View {
         )
         .ignoresSafeArea()
     }
+    
+    // MARK: - Plan Limit Card
     
     private var planLimitCard: some View {
         ModernCard {
@@ -126,6 +172,8 @@ struct MultiCityPlannerView: View {
         }
     }
     
+    // MARK: - Title Card
+    
     private var titleCard: some View {
         ModernCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -137,9 +185,12 @@ struct MultiCityPlannerView: View {
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
+                    .submitLabel(.done)
             }
         }
     }
+    
+    // MARK: - Cities Card
     
     private var citiesCard: some View {
         ModernCard {
@@ -197,7 +248,7 @@ struct MultiCityPlannerView: View {
                         
                         Image(systemName: "dollarsign.circle")
                             .foregroundColor(.gray)
-                        Text("$\(Int(viewModel.totalBudget))")
+                        Text("\(currencySymbol)\(Int(viewModel.totalBudget))")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
@@ -207,6 +258,8 @@ struct MultiCityPlannerView: View {
         }
     }
     
+    // MARK: - Budget Card (Improved with Localization)
+    
     private var budgetCard: some View {
         ModernCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -214,32 +267,88 @@ struct MultiCityPlannerView: View {
                     .font(.headline)
                     .foregroundColor(.blue)
                 
-                HStack {
-                    Text("$\(Int(viewModel.budgetPerDay))")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.green)
+                HStack(alignment: .top, spacing: 0) {
+                    // Left side - Budget input
+                    HStack(spacing: 0) {
+                        Text(currencySymbol)
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(.green)
+                            .frame(width: 30, alignment: .leading)
+                        
+                        TextField("", text: $budgetText)
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(.green)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.leading)
+                            .frame(width: 170)
+                            .onChange(of: budgetText) { oldValue, newValue in
+                                let filtered = newValue.filter { $0.isNumber }
+                                if filtered != newValue {
+                                    budgetText = filtered
+                                }
+                                if !filtered.isEmpty, let value = Double(filtered), value >= minBudget {
+                                    viewModel.budgetPerDay = value
+                                    isEditingBudget = true
+                                }
+                            }
+                            .onSubmit {
+                                finalizeBudgetEdit()
+                            }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.green.opacity(0.1))
+                    )
                     
                     Spacer()
                     
-                    VStack(alignment: .trailing) {
+                    // Right side - Total (Fixed width)
+                    VStack(alignment: .trailing, spacing: 4) {
                         Text("Total Trip:")
                             .font(.caption)
-                        Text("$\(Int(viewModel.totalBudget))")
-                            .font(.headline)
-                            .foregroundColor(.green)
+                            .foregroundColor(.gray)
+                        
+                        HStack(spacing: 4) {
+                            Text(currencySymbol)
+                                .font(.headline)
+                            Text("\(Int(viewModel.totalBudget))")
+                                .font(.headline)
+                        }
+                        .foregroundColor(.primary)
+                        .frame(width: 80, alignment: .trailing)
                     }
                 }
                 
-                Slider(value: $viewModel.budgetPerDay, in: 1000...30000, step: 10)
-                    .accentColor(.green)
+                // Slider only (no labels)
+                Slider(
+                    value: Binding(
+                        get: {
+                            // Clamp value between min and max
+                            min(max(viewModel.budgetPerDay, minBudget), maxBudget)
+                        },
+                        set: {
+                            viewModel.budgetPerDay = $0
+                            budgetText = String(Int($0))
+                            isEditingBudget = false
+                        }
+                    ),
+                    in: minBudget...maxBudget,
+                    step: budgetStep
+                )
+                .accentColor(.green)
+                .padding(.top, 8)
             }
         }
     }
     
+    // MARK: - Interests Card
+    
     private var interestsCard: some View {
         ModernCard {
             VStack(alignment: .leading, spacing: 15) {
-                Label("Interests", systemImage: "star.fill")
+                Label("Select Interests", systemImage: "star.fill")
                     .font(.headline)
                     .foregroundColor(.blue)
                 
@@ -248,13 +357,76 @@ struct MultiCityPlannerView: View {
                         EnhancedInterestChip(
                             title: interest,
                             isSelected: viewModel.selectedInterests.contains(interest),
-                            action: { viewModel.toggleInterest(interest) }
+                            action: {
+                                withAnimation(.spring()) {
+                                    viewModel.toggleInterest(interest)
+                                }
+                            }
                         )
                     }
                 }
             }
         }
     }
+    
+    // MARK: - Custom Interests Card
+    
+    private var customInterestsCard: some View {
+        ModernCard {
+            VStack(alignment: .leading, spacing: 15) {
+                Label("Custom Interests", systemImage: "plus.square.fill")
+                    .font(.headline)
+                    .foregroundColor(.blue)
+                
+                HStack {
+                    TextField("e.g., Temple, Sushi, Kebab", text: $viewModel.customInterestInput)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            withAnimation(.spring()) {
+                                viewModel.addCustomInterest()
+                            }
+                        }
+                    
+                    Button(action: {
+                        withAnimation(.spring()) {
+                            viewModel.addCustomInterest()
+                        }
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                if !viewModel.customInterests.isEmpty {
+                    FlowLayout(spacing: 10) {
+                        ForEach(viewModel.customInterests, id: \.self) { interest in
+                            EnhancedInterestChip(
+                                title: interest,
+                                isSelected: viewModel.selectedInterests.contains(interest),
+                                isCustom: true,
+                                action: {
+                                    withAnimation(.spring()) {
+                                        viewModel.toggleInterest(interest)
+                                    }
+                                },
+                                onRemove: {
+                                    withAnimation(.spring()) {
+                                        viewModel.removeCustomInterest(interest)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Generate Button
     
     private var generateButton: some View {
         Button(action: handleGenerate) {
@@ -285,6 +457,35 @@ struct MultiCityPlannerView: View {
         .disabled(!viewModel.canGenerate || viewModel.isGenerating)
     }
     
+    // MARK: - Helper Functions
+    
+    private func initializeBudgetText() {
+        if viewModel.budgetPerDay > 0 {
+            budgetText = String(Int(viewModel.budgetPerDay))
+        } else {
+            // Set default based on locale
+            viewModel.budgetPerDay = minBudget
+            budgetText = String(Int(minBudget))
+        }
+    }
+    
+    private func finalizeBudgetEdit() {
+        if budgetText.isEmpty {
+            viewModel.budgetPerDay = minBudget
+            budgetText = String(Int(minBudget))
+        } else if let value = Double(budgetText), value < minBudget {
+            viewModel.budgetPerDay = minBudget
+            budgetText = String(Int(minBudget))
+        } else if let value = Double(budgetText), value > maxBudget {
+            viewModel.budgetPerDay = maxBudget
+            budgetText = String(Int(maxBudget))
+        }
+        isEditingBudget = false
+        dismissKeyboard()
+    }
+    
+    // MARK: - Actions
+    
     private func handleGenerate() {
         if !limitService.canGeneratePlan() {
             showLimitWarning = true
@@ -296,9 +497,20 @@ struct MultiCityPlannerView: View {
             try? await limitService.incrementPlanCount()
         }
     }
+    
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+    }
 }
 
-// MARK: - City Stop Row Component
+// MARK: - Supporting Components
+
+// CityStopRow
 struct CityStopRow: View {
     let stop: CityStop
     let index: Int
@@ -309,7 +521,8 @@ struct CityStopRow: View {
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.2))
-                    .frame(width: 40, height: 40)
+                    .frame(width: 36, height: 36)
+                
                 Text("\(index + 1)")
                     .font(.headline)
                     .foregroundColor(.blue)
@@ -317,24 +530,50 @@ struct CityStopRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(stop.location.name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 
-                Text("\(stop.duration) days")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                HStack(spacing: 12) {
+                    Label("\(stop.duration) days", systemImage: "calendar")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             }
             
             Spacer()
             
             Button(action: onRemove) {
-                Image(systemName: "trash.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.red)
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(.red.opacity(0.7))
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
     }
 }
+
+// SaveSuccessNotification
+struct SaveSuccessNotification: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(.green)
+            
+            Text("Trip saved successfully!")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        )
+        .padding(.horizontal)
+    }
+}
+

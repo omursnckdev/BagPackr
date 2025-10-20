@@ -2,14 +2,19 @@
 //  EnhancedItineraryListRow.swift
 //  BagPackr
 //
-//  Created by Ömür Şenocak on 16.10.2025.
-//
 
 import SwiftUI
 
-// MARK: - Enhanced Itinerary List Row
 struct EnhancedItineraryListRow: View {
     let itinerary: Itinerary
+    
+    private var isTurkish: Bool {
+        Locale.current.language.languageCode?.identifier == "tr"
+    }
+    
+    private var currencySymbol: String {
+        isTurkish ? "₺" : "$"
+    }
     
     var body: some View {
         HStack(spacing: 15) {
@@ -17,7 +22,7 @@ struct EnhancedItineraryListRow: View {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(
                         LinearGradient(
-                            colors: [.blue.opacity(0.6), .purple.opacity(0.6)],
+                            colors: [.blue.opacity(0.6), .cyan.opacity(0.6)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -35,59 +40,62 @@ struct EnhancedItineraryListRow: View {
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
-                HStack(spacing: 8) {
-                    Label(
-                        "\(itinerary.duration) \(String(localized: "Days"))",
-                        systemImage: "calendar"
-                    )
+                Text(formatDate(itinerary.createdAt))
                     .font(.caption)
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+                
+                FlexibleChipLayout(spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 10))
+                        Text("\(itinerary.duration) \(isTurkish ? "gün" : "days")")
+                            .font(.caption2)
+                    }
                     .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
                     
-                    Text("•")
-                        .foregroundColor(.secondary)
-                    
-                    Label(
-                        String(
-                            localized: "$\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))"
-                        ),
-                        systemImage: "dollarsign.circle"
-                    )
-                    .font(.caption)
+                    HStack(spacing: 4) {
+                        Image(systemName: "dollarsign.circle")
+                            .font(.system(size: 10))
+                        Text("\(currencySymbol)\(Int(itinerary.budgetPerDay * Double(itinerary.duration)))")
+                            .font(.caption2)
+                    }
                     .foregroundColor(.green)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(6)
                 }
                 
-                // Interests Section
                 FlexibleChipLayout(spacing: 6) {
                     ForEach(itinerary.interests.prefix(3), id: \.self) { interest in
-                        Text(NSLocalizedString(interest, comment: "Interest category"))
-                            .font(.caption)
+                        Text(NSLocalizedString(interest, comment: ""))
+                            .font(.caption2)
                             .lineLimit(1)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
                             .background(Color.blue.opacity(0.1))
                             .foregroundColor(.primary)
-                            .cornerRadius(8)
+                            .cornerRadius(6)
                     }
                     
                     if itinerary.interests.count > 3 {
                         Text("+\(itinerary.interests.count - 3)")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 8)
-                            .padding(.vertical, 5)
+                            .padding(.vertical, 4)
                             .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
+                            .cornerRadius(6)
                     }
                 }
             }
             
             Spacer()
-            
-            if itinerary.isShared {
-                Image(systemName: "person.2.fill")
-                    .foregroundColor(.purple)
-                    .font(.caption)
-            }
             
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
@@ -97,5 +105,12 @@ struct EnhancedItineraryListRow: View {
         .background(Color(.secondarySystemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
 }

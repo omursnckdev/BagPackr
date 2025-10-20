@@ -124,15 +124,31 @@ struct BagPackrApp: App {
         }
     }
 }// MARK: - Content View
+// Update ContentView in ContentView.swift
+
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var showOnboarding = false
     
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
-                MainTabView()
+                if hasSeenOnboarding {
+                    MainTabView()
+                } else {
+                    OnboardingView {
+                        hasSeenOnboarding = true
+                    }
+                }
             } else {
                 AuthView()
+            }
+        }
+        .onAppear {
+            // Show onboarding only once after first login
+            if authViewModel.isAuthenticated && !hasSeenOnboarding {
+                showOnboarding = true
             }
         }
     }
@@ -768,124 +784,7 @@ class FirestoreService {
     func deleteGroup(_ id: String) async throws {
         try await db.collection("groupPlans").document(id).delete()
     }
-    
-    // MARK: - Expenses + Settlements
- /*   func addExpenseToGroup(expense: GroupExpense) async throws {
-        let encoder = Firestore.Encoder()
-        let data = try encoder.encode(expense)
-        
-        try await db.collection("groupPlans")
-            .document(expense.groupId)
-            .collection("expenses")
-            .document(expense.id)
-            .setData(data)
-        
-        // 🔄 Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: expense.groupId)
-        let group = try await getGroupById(groupId: expense.groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: expense.groupId, settlements: newSettlements)
-    }
-    
-    func fetchGroupExpenses(groupId: String) async throws -> [GroupExpense] {
-        let snapshot = try await db.collection("groupPlans")
-            .document(groupId)
-            .collection("expenses")
-            .getDocuments()
-        
-        let decoder = Firestore.Decoder()
-        return try snapshot.documents.compactMap { doc in
-            try? decoder.decode(GroupExpense.self, from: doc.data())
-        }.sorted { $0.date > $1.date }
-    }
-    
-    func deleteExpense(groupId: String, expenseId: String) async throws {
-        try await db.collection("groupPlans")
-            .document(groupId)
-            .collection("expenses")
-            .document(expenseId)
-            .delete()
-        
-        // 🔄 Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: groupId)
-        let group = try await getGroupById(groupId: groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: groupId, settlements: newSettlements)
-    }
-    
-    func updateExpense(groupId: String, expenseId: String, description: String, amount: Double, category: ExpenseCategory) async throws {
-        try await db.collection("groupPlans")
-            .document(groupId)
-            .collection("expenses")
-            .document(expenseId)
-            .updateData([
-                "description": description,
-                "amount": amount,
-                "category": category.rawValue
-            ])
-        
-        // Recalculate settlements
-        let expenses = try await fetchGroupExpenses(groupId: groupId)
-        let group = try await getGroupById(groupId: groupId)
-        let newSettlements = calculateSettlements(expenses: expenses, members: group.members)
-        try await saveSettlements(groupId: groupId, settlements: newSettlements)
-    }
-    
-    // MARK: - Settlements
-    func saveSettlements(groupId: String, settlements: [Settlement]) async throws {
-        let encoder = Firestore.Encoder()
-        let data = try settlements.map { try encoder.encode($0) }
-        
-        try await db.collection("groupPlans")
-            .document(groupId)
-            .collection("settlements")
-            .document("current")
-            .setData(["items": data])
-    }
-    
-    func fetchSettlements(groupId: String) async throws -> [Settlement] {
-        let snapshot = try await db.collection("groupPlans")
-            .document(groupId)
-            .collection("settlements")
-            .document("current")
-            .getDocument()
-        
-        guard let data = snapshot.data(),
-              let items = data["items"] as? [[String: Any]] else {
-            return []
-        }
-        
-        let decoder = Firestore.Decoder()
-        return try items.compactMap { try decoder.decode(Settlement.self, from: $0) }
-    }
-    
-    
-    func listenToGroupExpenses(groupId: String, completion: @escaping ([GroupExpense]) -> Void) -> ListenerRegistration {
-        let listener = db.collection("groupPlans")
-            .document(groupId)
-            .collection("expenses")
-            .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    print("Error listening to expenses: \(error)")
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    completion([])
-                    return
-                }
-                
-                let decoder = Firestore.Decoder()
-                let expenses = documents.compactMap { doc -> GroupExpense? in
-                    try? decoder.decode(GroupExpense.self, from: doc.data())
-                }.sorted { $0.date > $1.date }
-                
-                completion(expenses)
-            }
-        
-        return listener
-    }
-    */
+
 
     // MARK: - Expenses + Settlements (Fixed for Multi-City Support)
 
@@ -1007,6 +906,34 @@ class FirestoreService {
         
         let decoder = Firestore.Decoder()
         return try items.compactMap { try decoder.decode(Settlement.self, from: $0) }
+    }
+    func markSettlementAsPaid(groupId: String, settlementId: String) async throws {
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        // Get current settlements
+        var settlements = try await fetchSettlements(groupId: groupId)
+        
+        // Find and update the settlement
+        if let index = settlements.firstIndex(where: { $0.id == settlementId }) {
+            settlements[index].isSettled = true
+            settlements[index].settledAt = Date()
+            
+            // Save updated settlements
+            try await saveSettlements(groupId: groupId, settlements: settlements, collectionName: collectionName)
+        }
+    }
+
+    func unmarkSettlement(groupId: String, settlementId: String) async throws {
+        let collectionName = try await getGroupCollectionName(groupId: groupId)
+        
+        var settlements = try await fetchSettlements(groupId: groupId)
+        
+        if let index = settlements.firstIndex(where: { $0.id == settlementId }) {
+            settlements[index].isSettled = false
+            settlements[index].settledAt = nil
+            
+            try await saveSettlements(groupId: groupId, settlements: settlements, collectionName: collectionName)
+        }
     }
 
     func listenToGroupExpenses(groupId: String, completion: @escaping ([GroupExpense]) -> Void) -> ListenerRegistration {

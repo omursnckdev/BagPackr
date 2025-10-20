@@ -18,6 +18,7 @@
 
     },
     "%@ - %lld days" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -54,6 +55,9 @@
 
     },
     "%lld days" : {
+
+    },
+    "%lld ilgiye göre filtreleniyor" : {
 
     },
     "%lld members" : {
@@ -111,16 +115,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%lld"
-          }
-        }
-      }
-    },
-    "🗺️ %@ - %lld days" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "🗺️ %1$@ - %2$lld days"
           }
         }
       }
@@ -328,7 +322,6 @@
 
     },
     "Are you sure you want to delete this itinerary? This action cannot be undone." : {
-      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -399,7 +392,11 @@
     "Bu çok şehirli geziyi silmek istediğine emin misin?" : {
 
     },
+    "Bu gezinizi silmek istediğinizden emin misiniz?" : {
+
+    },
     "Budget" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -490,6 +487,12 @@
     "City" : {
 
     },
+    "Clear" : {
+
+    },
+    "Clear Filter" : {
+
+    },
     "Close" : {
       "localizations" : {
         "tr" : {
@@ -553,6 +556,9 @@
           }
         }
       }
+    },
+    "Create an itinerary first to start a group plan" : {
+
     },
     "Create Group" : {
       "localizations" : {
@@ -657,9 +663,6 @@
         }
       }
     },
-    "Days" : {
-
-    },
     "Delete" : {
       "localizations" : {
         "tr" : {
@@ -694,7 +697,6 @@
 
     },
     "Delete Itinerary" : {
-      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -703,6 +705,9 @@
           }
         }
       }
+    },
+    "Delete Multi-City Trip" : {
+
     },
     "Delete My Account" : {
       "localizations" : {
@@ -870,6 +875,9 @@
         }
       }
     },
+    "Farklı ilgi alanları seçin veya filtreyi temizleyin" : {
+
+    },
     "Festivals" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -880,6 +888,22 @@
           }
         }
       }
+    },
+    "Filtering by %lld interest%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Filtering by %1$lld interest%2$@"
+          }
+        }
+      }
+    },
+    "Filtrenize uygun aktivite bulunamadı" : {
+
+    },
+    "Filtreyi Temizle" : {
+
     },
     "Food & Drinks" : {
       "extractionState" : "manual",
@@ -917,6 +941,9 @@
 
     },
     "Generating..." : {
+
+    },
+    "Get Started" : {
 
     },
     "gets back %@%@" : {
@@ -1018,9 +1045,6 @@
         }
       }
     },
-    "Interests" : {
-
-    },
     "Invite Member" : {
       "localizations" : {
         "tr" : {
@@ -1041,6 +1065,9 @@
         }
       }
     },
+    "İptal" : {
+
+    },
     "Itinerary" : {
       "localizations" : {
         "tr" : {
@@ -1060,6 +1087,9 @@
           }
         }
       }
+    },
+    "Itinerary Saved!" : {
+
     },
     "Join BagPckr today" : {
       "localizations" : {
@@ -1192,6 +1222,9 @@
     "Multi-City Trips" : {
 
     },
+    "MULTI-CITY TRIPS" : {
+
+    },
     "Museums" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1233,6 +1266,9 @@
         }
       }
     },
+    "Next" : {
+
+    },
     "Nightlife" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1243,6 +1279,9 @@
           }
         }
       }
+    },
+    "No activities match your filter" : {
+
     },
     "No expenses to calculate" : {
       "localizations" : {
@@ -1274,7 +1313,7 @@
         }
       }
     },
-    "No itineraries available" : {
+    "No Itineraries Available" : {
 
     },
     "No itineraries yet" : {
@@ -1399,6 +1438,9 @@
         }
       }
     },
+    "Please check your internet connection and try again" : {
+
+    },
     "Premium Feature" : {
 
     },
@@ -1495,6 +1537,9 @@
         }
       }
     },
+    "Retry" : {
+
+    },
     "Save" : {
       "localizations" : {
         "tr" : {
@@ -1524,6 +1569,9 @@
           }
         }
       }
+    },
+    "Select an itinerary..." : {
+
     },
     "Select Interests" : {
       "localizations" : {
@@ -1662,6 +1710,12 @@
     "Single City Trips" : {
 
     },
+    "SINGLE CITY TRIPS" : {
+
+    },
+    "Skip" : {
+
+    },
     "Spent: $%lld" : {
       "localizations" : {
         "tr" : {
@@ -1734,6 +1788,9 @@
           }
         }
       }
+    },
+    "Temizle" : {
+
     },
     "Temples" : {
       "extractionState" : "manual",
@@ -1841,6 +1898,9 @@
         }
       }
     },
+    "Trip saved successfully!" : {
+
+    },
     "Trip Title" : {
 
     },
@@ -1853,6 +1913,12 @@
           }
         }
       }
+    },
+    "Try selecting different interests or clear the filter" : {
+
+    },
+    "Unable to load products" : {
+
     },
     "Unlimited plans" : {
 
@@ -1929,6 +1995,9 @@
           }
         }
       }
+    },
+    "Your trip has been saved successfully" : {
+
     }
   },
   "version" : "1.1"

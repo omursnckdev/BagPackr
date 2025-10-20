@@ -41,28 +41,33 @@ class StoreManager: ObservableObject {
     
     func loadProducts() async {
         isLoading = true
+        print("🛒 Starting to load products...")
         
         do {
-            let storeProducts = try await Product.products(for: productIDs)
+            let productIdentifiers = [
+                "com.yourapp.premium.monthly",
+                "com.yourapp.premium.yearly"
+            ]
             
-            // Sort: monthly first, then yearly
-            products = storeProducts.sorted { product1, product2 in
-                if product1.subscription?.subscriptionPeriod.unit == .month {
-                    return true
-                }
-                return false
+            print("🛒 Product IDs: \(productIdentifiers)")
+            
+            let loadedProducts = try await Product.products(for: productIdentifiers)
+            
+            print("🛒 Loaded \(loadedProducts.count) products")
+            for product in loadedProducts {
+                print("🛒 Product: \(product.id) - \(product.displayName) - \(product.displayPrice)")
             }
             
-            print("✅ Loaded \(products.count) products")
-            for product in products {
-                print("  - \(product.displayName): \(product.displayPrice)")
+            await MainActor.run {
+                self.products = loadedProducts
+                self.isLoading = false
             }
-            
         } catch {
             print("❌ Failed to load products: \(error)")
+            await MainActor.run {
+                self.isLoading = false
+            }
         }
-        
-        isLoading = false
     }
     
     // MARK: - Purchase
