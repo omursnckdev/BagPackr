@@ -1,5 +1,5 @@
 //
-//  MultiCityPlannerView.swift - COMPLETE WITH LOCALIZATION
+//  MultiCityPlannerView.swift - FIXED
 //  BagPackr
 //
 
@@ -8,6 +8,7 @@ import SwiftUI
 struct MultiCityPlannerView: View {
     @StateObject private var viewModel = MultiCityPlannerViewModel()
     @StateObject private var limitService = PlanLimitService.shared
+    @StateObject private var adManager = AdManager.shared
     @ObservedObject var itineraryListViewModel: ItineraryListViewModel
     
     @State private var showAddCity = false
@@ -15,6 +16,7 @@ struct MultiCityPlannerView: View {
     @State private var showPremiumSheet = false
     @State private var budgetText = ""
     @State private var isEditingBudget = false
+    @State private var isWaitingForAd = false
     
     // Locale detection
     private var isTurkish: Bool {
@@ -60,6 +62,10 @@ struct MultiCityPlannerView: View {
                 }
                 .onAppear {
                     initializeBudgetText()
+                    Task {
+                        await limitService.checkPremiumStatus()
+                        await limitService.loadActivePlansCount()
+                    }
                 }
             }
             .navigationTitle("Multi-City Trip")
@@ -67,7 +73,7 @@ struct MultiCityPlannerView: View {
                 AddCityStopView(onAdd: viewModel.addCity)
             }
             .sheet(isPresented: $showPremiumSheet) {
-                PremiumUpgradeView()
+                PremiumPaywallView()
             }
             .sheet(item: $viewModel.generatedMultiCity) { multiCity in
                 MultiCityResultView(
@@ -77,13 +83,14 @@ struct MultiCityPlannerView: View {
                     }
                 )
             }
+            // ⭐ FIXED: Updated alert message
             .alert("Plan Limit Reached", isPresented: $showLimitWarning) {
                 Button("Upgrade to Premium") {
                     showPremiumSheet = true
                 }
-                Button("Wait", role: .cancel) { }
+                Button("Cancel", role: .cancel) { }
             } message: {
-                Text("You've reached your free plan limit. Next reset in \(limitService.getTimeUntilReset())")
+                Text("You've reached your free plan limit (1 active plan). Upgrade to Premium for unlimited plans!")
             }
             .alert("Error", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) { }
@@ -115,14 +122,14 @@ struct MultiCityPlannerView: View {
         .ignoresSafeArea()
     }
     
-    // MARK: - Plan Limit Card
+    // MARK: - Plan Limit Card (⭐ FIXED)
     
     private var planLimitCard: some View {
         ModernCard {
             HStack(spacing: 12) {
-                Image(systemName: limitService.isPremium ? "crown.fill" : "clock.fill")
+                Image(systemName: limitService.isPremium ? "crown.fill" : "info.circle.fill")
                     .font(.title2)
-                    .foregroundColor(limitService.isPremium ? .yellow : .orange)
+                    .foregroundColor(limitService.isPremium ? .yellow : .blue)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     if limitService.isPremium {
@@ -133,14 +140,13 @@ struct MultiCityPlannerView: View {
                             .font(.caption)
                             .foregroundColor(.gray)
                     } else {
-                        Text("\(limitService.remainingPlans) plans left")
+                        Text("Free Plan")
                             .font(.headline)
                             .foregroundColor(.primary)
-                        if let _ = limitService.nextResetTime {
-                            Text("Resets in \(limitService.getTimeUntilReset())")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
+                        // ⭐ FIXED: Show active plans count instead of reset time
+                        Text("\(limitService.activePlansCount)/1 plan used")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
                 }
                 
@@ -258,7 +264,7 @@ struct MultiCityPlannerView: View {
         }
     }
     
-    // MARK: - Budget Card (Improved with Localization)
+    // MARK: - Budget Card
     
     private var budgetCard: some View {
         ModernCard {
@@ -282,13 +288,30 @@ struct MultiCityPlannerView: View {
                             .multilineTextAlignment(.leading)
                             .frame(width: 170)
                             .onChange(of: budgetText) { oldValue, newValue in
+                                // ⭐ STEP 1: Filter to numbers only
                                 let filtered = newValue.filter { $0.isNumber }
-                                if filtered != newValue {
-                                    budgetText = filtered
+                                
+                                // ⭐ STEP 2: Limit input length (max 6 digits = 100,000)
+                                let maxDigits = isTurkish ? 6 : 5  // 100000₺ or 10000$
+                                let limited = String(filtered.prefix(maxDigits))
+                                
+                                // ⭐ STEP 3: Update text field
+                                if limited != newValue {
+                                    budgetText = limited
+                                    return
                                 }
-                                if !filtered.isEmpty, let value = Double(filtered), value >= minBudget {
-                                    viewModel.budgetPerDay = value
+                                
+                                // ⭐ STEP 4: Validate and update budget
+                                if !limited.isEmpty, let value = Double(limited) {
+                                    // Clamp between min and max
+                                    let clampedValue = min(max(value, minBudget), maxBudget)
+                                    viewModel.budgetPerDay = clampedValue
                                     isEditingBudget = true
+                                    
+                                    // If value exceeds max, update text to show max
+                                    if value > maxBudget {
+                                        budgetText = String(Int(maxBudget))
+                                    }
                                 }
                             }
                             .onSubmit {
@@ -304,7 +327,7 @@ struct MultiCityPlannerView: View {
                     
                     Spacer()
                     
-                    // Right side - Total (Fixed width)
+                    // Right side - Total
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Total Trip:")
                             .font(.caption)
@@ -321,11 +344,10 @@ struct MultiCityPlannerView: View {
                     }
                 }
                 
-                // Slider only (no labels)
+                // Slider
                 Slider(
                     value: Binding(
                         get: {
-                            // Clamp value between min and max
                             min(max(viewModel.budgetPerDay, minBudget), maxBudget)
                         },
                         set: {
@@ -429,32 +451,57 @@ struct MultiCityPlannerView: View {
     // MARK: - Generate Button
     
     private var generateButton: some View {
-        Button(action: handleGenerate) {
-            HStack {
-                if viewModel.isGenerating {
-                    ProgressView()
-                        .tint(.white)
-                    Text("Generating...")
-                } else {
-                    Image(systemName: "sparkles")
-                    Text("Generate Multi-City Trip")
-                }
-            }
-            .font(.headline)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: viewModel.canGenerate ? [.blue, .purple] : [.gray, .gray],
-                    startPoint: .leading,
-                    endPoint: .trailing
+        Button(action: handleGenerateButtonTap) {
+            buttonContent
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: buttonGradientColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
                 )
-            )
-            .foregroundColor(.white)
-            .cornerRadius(15)
-            .shadow(color: viewModel.canGenerate ? .blue.opacity(0.4) : .clear, radius: 10)
+                .foregroundColor(.white)
+                .cornerRadius(15)
+                .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
         }
-        .disabled(!viewModel.canGenerate || viewModel.isGenerating)
+        .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd)
+    }
+    
+    @ViewBuilder
+    private var buttonContent: some View {
+        HStack {
+            if viewModel.isGenerating || isWaitingForAd {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(0.9)
+                
+                if isWaitingForAd {
+                    Text("Loading ad...")
+                        .fontWeight(.semibold)
+                } else {
+                    Text("Creating your journey...")
+                        .fontWeight(.semibold)
+                }
+            } else {
+                Image(systemName: "sparkles")
+                Text("Generate Multi-City Trip")
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+    
+    private var buttonGradientColors: [Color] {
+        if viewModel.canGenerate && !viewModel.isGenerating && !isWaitingForAd {
+            return [.blue, .purple]
+        } else {
+            return [.gray, .gray]
+        }
+    }
+    
+    private var buttonShadowColor: Color {
+        (viewModel.canGenerate && !viewModel.isGenerating && !isWaitingForAd) ? .blue.opacity(0.4) : .clear
     }
     
     // MARK: - Helper Functions
@@ -463,7 +510,6 @@ struct MultiCityPlannerView: View {
         if viewModel.budgetPerDay > 0 {
             budgetText = String(Int(viewModel.budgetPerDay))
         } else {
-            // Set default based on locale
             viewModel.budgetPerDay = minBudget
             budgetText = String(Int(minBudget))
         }
@@ -484,17 +530,71 @@ struct MultiCityPlannerView: View {
         dismissKeyboard()
     }
     
-    // MARK: - Actions
+    // MARK: - Actions (⭐ FIXED)
     
-    private func handleGenerate() {
-        if !limitService.canGeneratePlan() {
+    // MARK: - Actions (⭐ IMPROVED)
+
+    private func handleGenerateButtonTap() {
+        // Check plan limit first
+        if !limitService.canCreatePlan {
             showLimitWarning = true
             return
         }
         
         Task {
+            // Generate multi-city trip
             await viewModel.generateMultiCityTrip()
-            try? await limitService.incrementPlanCount()
+            
+            // ⭐ IMPROVED: Only increment if generation was successful
+            if viewModel.generatedMultiCity != nil {
+                await limitService.incrementPlanCount()
+                print("✅ Multi-city plan created, count incremented")
+            } else if !viewModel.showError {
+                // If no error shown but also no result, still increment
+                // (edge case handling)
+                await limitService.incrementPlanCount()
+            }
+            
+            // Show ad
+            await waitForAdAndShow()
+        }
+    }
+    
+    private func waitForAdAndShow() async {
+        let maxWaitTime: TimeInterval = 4.0
+        let checkInterval: TimeInterval = 0.2
+        var elapsed: TimeInterval = 0.0
+        
+        if adManager.isAdReady {
+            print("✅ Ad already ready, showing immediately")
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await MainActor.run {
+                AdManager.shared.showAd()
+            }
+            return
+        }
+        
+        await MainActor.run {
+            isWaitingForAd = true
+        }
+        print("⏳ Waiting for ad to load...")
+        
+        while !adManager.isAdReady && elapsed < maxWaitTime {
+            try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
+            elapsed += checkInterval
+        }
+        
+        await MainActor.run {
+            isWaitingForAd = false
+        }
+        
+        await MainActor.run {
+            if adManager.isAdReady {
+                print("✅ Ad loaded! Showing now...")
+                AdManager.shared.showAd()
+            } else {
+                print("⏱️ Timeout: Ad couldn't load in \(maxWaitTime) seconds")
+            }
         }
     }
     
@@ -510,7 +610,6 @@ struct MultiCityPlannerView: View {
 
 // MARK: - Supporting Components
 
-// CityStopRow
 struct CityStopRow: View {
     let stop: CityStop
     let index: Int
@@ -554,7 +653,6 @@ struct CityStopRow: View {
     }
 }
 
-// SaveSuccessNotification
 struct SaveSuccessNotification: View {
     var body: some View {
         HStack(spacing: 12) {
@@ -576,4 +674,3 @@ struct SaveSuccessNotification: View {
         .padding(.horizontal)
     }
 }
-

@@ -13,6 +13,7 @@ import GooglePlaces
 import MapKit
 import Combine
 import GoogleMobileAds
+import FirebaseFirestore
 
 // MARK: - Multi-City Models
 
@@ -134,6 +135,49 @@ struct MultiCityGroupPlan: Identifiable, Codable {
 
 
 
+// MARK: - User & Subscription Models
+
+enum SubscriptionTier: String, Codable {
+    case free
+    case premium
+}
+
+struct UserSubscription: Codable {
+    var tier: SubscriptionTier = .free
+    var subscriptionEndDate: Date?
+    var isTrialActive: Bool = false
+    var trialEndDate: Date?
+    var productId: String?
+    
+    var isPremium: Bool {
+        guard tier == .premium else { return false }
+        
+        // Check trial
+        if isTrialActive, let trialEnd = trialEndDate {
+            return Date() < trialEnd
+        }
+        
+        // Check subscription
+        if let endDate = subscriptionEndDate {
+            return Date() < endDate
+        }
+        
+        return false
+    }
+}
+
+struct User: Identifiable, Codable {
+    @DocumentID var id: String?
+    var email: String
+    var displayName: String?
+    var photoURL: String?
+    var subscription: UserSubscription = UserSubscription()
+    var createdAt: Date = Date()
+    
+    var isPremium: Bool {
+        subscription.isPremium
+    }
+}
 
 struct Itinerary: Identifiable, Codable, Equatable, Hashable {
     let id: String

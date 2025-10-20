@@ -150,43 +150,48 @@ struct PremiumUpgradeView: View {
     }
     
     // MARK: - Features Section
-    
     private var featuresSection: some View {
         VStack(spacing: 20) {
             FeatureRow(
                 icon: "infinity",
                 title: "Unlimited Plans",
-                description: "Create as many itineraries as you want"
+                description: "Create as many itineraries as you want",
+                color: .blue  // ⭐ Added
             )
             
             FeatureRow(
                 icon: "xmark.circle",
                 title: "Ad-Free",
-                description: "Enjoy uninterrupted planning"
+                description: "Enjoy uninterrupted planning",
+                color: .green  // ⭐ Added
             )
             
             FeatureRow(
                 icon: "map.fill",
                 title: "Multi-City Planner",
-                description: "Plan trips across multiple cities"
+                description: "Plan trips across multiple cities",
+                color: .purple  // ⭐ Added
             )
             
             FeatureRow(
                 icon: "doc.text",
                 title: "PDF Export",
-                description: "Download and share your trips"
+                description: "Download and share your trips",
+                color: .orange  // ⭐ Added
             )
             
             FeatureRow(
                 icon: "bolt.fill",
                 title: "Priority Support",
-                description: "Get help when you need it"
+                description: "Get help when you need it",
+                color: .yellow  // ⭐ Added
             )
             
             FeatureRow(
                 icon: "sparkles",
                 title: "Early Access",
-                description: "Try new features first"
+                description: "Try new features first",
+                color: .pink  // ⭐ Added
             )
         }
         .padding(.horizontal)
@@ -397,35 +402,6 @@ struct ProductCard: View {
 }
 
 // MARK: - Feature Row
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Color.blue.opacity(0.1))
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-        }
-    }
-}
 
 // MARK: - Corner Radius Extension
 extension View {

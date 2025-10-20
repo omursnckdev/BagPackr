@@ -13,20 +13,23 @@ class PlanLimitService: ObservableObject {
     static let shared = PlanLimitService()
     
     @Published var isPremium: Bool = false
-    @Published var plansCreatedToday: Int = 0
-    @Published var nextResetTime: Date?
+    @Published var activePlansCount: Int = 0
     
-    private let maxFreePlans = 3
+    private let FREE_TIER_LIMIT = 1  // 1 aktif plan (toplam)
     private let db = Firestore.firestore()
     
     var remainingPlans: Int {
-        isPremium ? 999 : max(0, maxFreePlans - plansCreatedToday)
+        isPremium ? 999 : max(0, FREE_TIER_LIMIT - activePlansCount)
+    }
+    
+    var canCreatePlan: Bool {
+        isPremium || activePlansCount < FREE_TIER_LIMIT
     }
     
     init() {
         Task {
             await checkPremiumStatus()
-            await loadPlanCount()
+            await loadActivePlansCount()
         }
     }
     
@@ -42,12 +45,12 @@ class PlanLimitService: ObservableObject {
             // Check StoreKit first
             let storeIsPremium = StoreManager.shared.isPremium
             
-            // Also check Firestore (in case user is on different device)
+            // Also check Firestore
             let firestoreIsPremium = try await FirestoreService.shared.getUserPremiumStatus(userId: userId)
             
             isPremium = storeIsPremium || firestoreIsPremium
             
-            print("✅ Premium status: \(isPremium) (Store: \(storeIsPremium), Firestore: \(firestoreIsPremium))")
+            print("✅ Premium status: \(isPremium)")
             
         } catch {
             print("❌ Error checking premium status: \(error)")
@@ -62,87 +65,97 @@ class PlanLimitService: ObservableObject {
         isPremium = true
     }
     
-    // MARK: - Plan Counting
+    // MARK: - Active Plans Count (⭐ FIXED - Counts BOTH types!)
     
-    func loadPlanCount() async {
+    func loadActivePlansCount() async {
         guard let userId = Auth.auth().currentUser?.uid else { return }
-        
-        let today = Calendar.current.startOfDay(for: Date())
         
         do {
-            let snapshot = try await db.collection("users")
-                .document(userId)
-                .collection("planLimits")
-                .document("current")
-                .getDocument()
+            // ⭐ Count regular itineraries
+            let itinerariesSnapshot = try await db.collection("itineraries")
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments()
             
-            if let data = snapshot.data(),
-               let count = data["count"] as? Int,
-               let timestamp = data["date"] as? Timestamp {
-                
-                let savedDate = Calendar.current.startOfDay(for: timestamp.dateValue())
-                
-                if savedDate == today {
-                    plansCreatedToday = count
-                    nextResetTime = Calendar.current.date(byAdding: .day, value: 1, to: today)
-                } else {
-                    // New day, reset count
-                    plansCreatedToday = 0
-                    nextResetTime = Calendar.current.date(byAdding: .day, value: 1, to: today)
-                    try await resetDailyCount()
-                }
-            } else {
-                plansCreatedToday = 0
-                nextResetTime = Calendar.current.date(byAdding: .day, value: 1, to: today)
-            }
+            let regularCount = itinerariesSnapshot.documents.count
+            
+            // ⭐ Count multi-city itineraries
+            let multiCitySnapshot = try await db.collection("multiCityItineraries")
+                .whereField("userId", isEqualTo: userId)
+                .getDocuments()
+            
+            let multiCityCount = multiCitySnapshot.documents.count
+            
+            // ⭐ Total = regular + multi-city
+            activePlansCount = regularCount + multiCityCount
+            
+            print("✅ Active plans count: \(activePlansCount) (Regular: \(regularCount), Multi-city: \(multiCityCount))")
+            
         } catch {
-            print("❌ Error loading plan count: \(error)")
+            print("❌ Error loading active plans count: \(error)")
+            activePlansCount = 0
         }
     }
     
-    func canGeneratePlan() -> Bool {
-        return isPremium || plansCreatedToday < maxFreePlans
-    }
+    // MARK: - Plan Creation Check
     
-    func incrementPlanCount() async throws {
-        guard !isPremium else { return }
-        guard let userId = Auth.auth().currentUser?.uid else { return }
+    func canGeneratePlan() async -> (canCreate: Bool, reason: String?) {
+        // Refresh counts
+        await checkPremiumStatus()
+        await loadActivePlansCount()
         
-        plansCreatedToday += 1
-        
-        try await db.collection("users")
-            .document(userId)
-            .collection("planLimits")
-            .document("current")
-            .setData([
-                "count": plansCreatedToday,
-                "date": Timestamp(date: Date())
-            ])
-    }
-    
-    private func resetDailyCount() async throws {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
-        
-        try await db.collection("users")
-            .document(userId)
-            .collection("planLimits")
-            .document("current")
-            .setData([
-                "count": 0,
-                "date": Timestamp(date: Date())
-            ])
-    }
-    
-    func getTimeUntilReset() -> String {
-        guard let resetTime = nextResetTime else { return "Unknown" }
-        
-        let now = Date()
-        let components = Calendar.current.dateComponents([.hour, .minute], from: now, to: resetTime)
-        
-        if let hours = components.hour, let minutes = components.minute {
-            return "\(hours)h \(minutes)m"
+        // Premium users = unlimited
+        if isPremium {
+            return (true, nil)
         }
         
-        return "Unknown"
+        // Free users = check limit
+        if activePlansCount >= FREE_TIER_LIMIT {
+            return (false, "Free tier limit reached. Upgrade to Premium for unlimited plans!")
+        }
+        
+        return (true, nil)
+    }
+    
+    // Call this after successfully creating a plan
+    func incrementPlanCount() async {
+        await loadActivePlansCount()
+        print("📊 Plan count after increment: \(activePlansCount)/\(FREE_TIER_LIMIT)")
+    }
+    
+    // Call this after deleting a plan
+    func decrementPlanCount() async {
+        await loadActivePlansCount()
+        print("📊 Plan count after decrement: \(activePlansCount)/\(FREE_TIER_LIMIT)")
+    }
+    
+    // MARK: - Delete Plan (to free up slot)
+    
+    func deletePlan(planId: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        // Try to delete from itineraries collection
+        let itineraryRef = db.collection("itineraries").document(planId)
+        let itineraryDoc = try? await itineraryRef.getDocument()
+        
+        if itineraryDoc?.exists == true {
+            try await itineraryRef.delete()
+            print("✅ Regular itinerary deleted: \(planId)")
+        } else {
+            // Try multi-city collection
+            let multiCityRef = db.collection("multiCityItineraries").document(planId)
+            let multiCityDoc = try? await multiCityRef.getDocument()
+            
+            if multiCityDoc?.exists == true {
+                try await multiCityRef.delete()
+                print("✅ Multi-city itinerary deleted: \(planId)")
+            } else {
+                print("⚠️ Plan not found: \(planId)")
+            }
+        }
+        
+        // Refresh count
+        await loadActivePlansCount()
+        
+        print("✅ Plan deleted, remaining slots: \(remainingPlans)")
     }
 }
