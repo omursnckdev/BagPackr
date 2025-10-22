@@ -6,15 +6,18 @@
 //
 
 import SwiftUI
+import Combine
 
 struct CreateItineraryView: View {
     
     @StateObject private var viewModel = CreateItineraryViewModel()
     @ObservedObject var itineraryListViewModel: ItineraryListViewModel
     @StateObject private var adManager = AdManager.shared
+    @State private var showPaywall = false
     @State private var showMapPicker = false
     @State private var isWaitingForAd = false
-    
+
+    @StateObject private var planLimitService = PlanLimitService.shared
     // Locale-based values
     private var minBudget: Double {
         Locale.current.language.languageCode?.identifier == "tr" ? 1000 : 50
@@ -177,6 +180,10 @@ struct CreateItineraryView: View {
         }
     }
     
+    private var isTurkish: Bool {
+        Locale.current.language.languageCode?.identifier == "tr"
+    }
+    
     private var durationCard: some View {
         ModernCard {
             VStack(alignment: .leading, spacing: 12) {
@@ -240,13 +247,30 @@ struct CreateItineraryView: View {
                             .multilineTextAlignment(.leading)
                             .frame(width: 170)
                             .onChange(of: budgetText) { oldValue, newValue in
+                                // ⭐ STEP 1: Filter to numbers only
                                 let filtered = newValue.filter { $0.isNumber }
-                                if filtered != newValue {
-                                    budgetText = filtered
+                                
+                                // ⭐ STEP 2: Limit input length (max 6 digits = 100,000)
+                                let maxDigits = isTurkish ? 6 : 5  // 100000₺ or 10000$
+                                let limited = String(filtered.prefix(maxDigits))
+                                
+                                // ⭐ STEP 3: Update text field
+                                if limited != newValue {
+                                    budgetText = limited
+                                    return
                                 }
-                                if !filtered.isEmpty, let value = Double(filtered), value >= minBudget {
-                                    viewModel.budgetPerDay = value
+                                
+                                // ⭐ STEP 4: Validate and update budget
+                                if !limited.isEmpty, let value = Double(limited) {
+                                    // Clamp between min and max
+                                    let clampedValue = min(max(value, minBudget), maxBudget)
+                                    viewModel.budgetPerDay = clampedValue
                                     isEditingBudget = true
+                                    
+                                    // If value exceeds max, update text to show max
+                                    if value > maxBudget {
+                                        budgetText = String(Int(maxBudget))
+                                    }
                                 }
                             }
                             .onSubmit {
@@ -395,6 +419,21 @@ struct CreateItineraryView: View {
                 .shadow(color: buttonShadowColor, radius: 10, x: 0, y: 5)
         }
         .disabled(!viewModel.canGenerate || viewModel.isGenerating || isWaitingForAd)
+        
+        // ✅ Premium Alert
+        .alert("Premium Required 💎", isPresented: $viewModel.showPremiumAlert) {
+            Button("Upgrade to Premium") {
+                showPaywall = true
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.premiumAlertMessage)
+        }
+        
+        // ✅ Paywall sheet
+        .sheet(isPresented: $showPaywall) {
+            PremiumPaywallView()
+        }
         .padding(.horizontal)
     }
     
@@ -424,11 +463,32 @@ struct CreateItineraryView: View {
     // MARK: - Actions
     
     private func handleGenerateButtonTap() {
+        // ⭐ STEP 1: Check plan limit first
+        if !planLimitService.canCreatePlan {
+            viewModel.showPremiumAlert = true  // ✅ CORRECT!
+            print("⚠️ Plan limit reached: \(planLimitService.activePlansCount)/1")
+            return
+        }
+        
         Task {
-            viewModel.generateItinerary(itineraryListViewModel: itineraryListViewModel)
+            // ⭐ STEP 2: Generate itinerary
+            print("🚀 Starting itinerary generation...")
+            await viewModel.generateItinerary(itineraryListViewModel: itineraryListViewModel)
+            
+            // ⭐ STEP 3: Increment count ONLY if successful
+            if viewModel.generatedItinerary != nil {
+                await planLimitService.incrementPlanCount()
+                print("✅ Itinerary created successfully!")
+                print("📊 New plan count: \(planLimitService.activePlansCount)/1")
+            } else {
+                print("❌ Itinerary generation failed, plan count not incremented")
+            }
+            
+            // ⭐ STEP 4: Show ad
             await waitForAdAndShow()
         }
     }
+
     
     private func waitForAdAndShow() async {
         let maxWaitTime: TimeInterval = 4.0

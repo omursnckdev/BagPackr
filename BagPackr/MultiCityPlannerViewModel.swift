@@ -63,10 +63,16 @@ class MultiCityPlannerViewModel: ObservableObject {
     
     func addCity(_ cityStop: CityStop) {
         cityStops.append(cityStop)
+        AnalyticsService.shared.logCityAdded(
+              cityName: cityStop.location.name,
+              duration: cityStop.duration
+          )
     }
     
     func removeCity(_ cityStop: CityStop) {
         cityStops.removeAll { $0.id == cityStop.id }
+        AnalyticsService.shared.logCityRemoved(cityName: cityStop.location.name)
+
     }
     
     func toggleInterest(_ interest: String) {
@@ -74,6 +80,10 @@ class MultiCityPlannerViewModel: ObservableObject {
             selectedInterests.remove(interest)
         } else {
             selectedInterests.insert(interest)
+            AnalyticsService.shared.logInterestSelected(
+                   interest: interest,
+                   isCustom: false
+               )
         }
     }
     
@@ -84,6 +94,8 @@ class MultiCityPlannerViewModel: ObservableObject {
         
         customInterests.append(trimmed)
         selectedInterests.insert(trimmed)
+        AnalyticsService.shared.logCustomInterestAdded(interest: trimmed)
+
         customInterestInput = ""
     }
     
@@ -96,6 +108,11 @@ class MultiCityPlannerViewModel: ObservableObject {
     func generateMultiCityTrip() async {
         isGenerating = true
         defer { isGenerating = false }
+        
+        let startTime = Date()
+        AnalyticsService.shared.logAIGenerationStarted(type: "multi_city")
+
+        
         
         do {
             guard let userId = Auth.auth().currentUser?.uid else {
@@ -125,6 +142,19 @@ class MultiCityPlannerViewModel: ObservableObject {
             // Save to Firestore
             try await FirestoreService.shared.saveMultiCityItinerary(multiCity)
             
+            // ⭐ Analytics - Success
+               let duration = Date().timeIntervalSince(startTime)
+               AnalyticsService.shared.logAIGenerationCompleted(
+                   type: "multi_city",
+                   duration: duration
+               )
+               
+               AnalyticsService.shared.logMultiCityCreated(
+                   cityCount: cityStops.count,
+                   totalDuration: totalDuration,
+                   totalBudget: totalBudget
+               )
+            
             showSaveSuccess = true
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             showSaveSuccess = false
@@ -136,6 +166,11 @@ class MultiCityPlannerViewModel: ObservableObject {
             print("❌ Error generating multi-city trip: \(error)")
             errorMessage = error.localizedDescription
             showError = true
+            // ⭐ Analytics - Failure
+                 AnalyticsService.shared.logAIGenerationFailed(
+                     type: "multi_city",
+                     error: error.localizedDescription
+                 )
         }
     }
     

@@ -109,8 +109,8 @@ struct BagPackrApp: App {
         MobileAds.shared.start()
         
         // ✅ Initialize StoreKit Manager
-        _ = StoreManager.shared
-        print("✅ StoreKit Manager initialized")
+        _ = RevenueCatManager.shared
+        print("✅ RevenueCat Manager initialized")
     }
     
     var body: some Scene {
@@ -119,7 +119,8 @@ struct BagPackrApp: App {
                 .environmentObject(authViewModel)
                 .task {
                     // ✅ Check premium status when app launches
-                    await PlanLimitService.shared.checkPremiumStatus()
+                    await RevenueCatManager.shared.checkSubscriptionStatus()
+                    await RevenueCatManager.shared.fetchOfferings()
                 }
         }
     }
@@ -178,25 +179,44 @@ struct MainTabView: View {
                          .tabItem {
                              Label("Create", systemImage: "plus.circle.fill")
                          }
+                         .onAppear {
+                                            // ⭐ Analytics
+                                            AnalyticsService.shared.logScreenView("CreateItineraryView")
+                                        }
             MultiCityPlannerView(itineraryListViewModel: itineraryListViewModel)
                         .tabItem {
                             Label("Multi-City", systemImage: "map.fill")
                         }
+                        .onAppear {
+                                         // ⭐ Analytics
+                                         AnalyticsService.shared.logScreenView("MultiCityPlannerView")
+                                     }
             
             ItineraryListView(viewModel: itineraryListViewModel)
                 .tabItem {
                     Label("My Plans", systemImage: "list.bullet")
                 }
-            
+                .onAppear {
+                                   // ⭐ Analytics
+                                   AnalyticsService.shared.logScreenView("ItineraryListView")
+                               }
             GroupPlansView()
                 .tabItem {
                     Label("Groups", systemImage: "person.3.fill")
+                }
+                .onAppear {
+                    // ⭐ Analytics
+                    AnalyticsService.shared.logScreenView("GroupPlansView")
                 }
             
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
+                .onAppear {
+                                   // ⭐ Analytics
+                                   AnalyticsService.shared.logScreenView("ProfileView")
+                               }
         }
         .accentColor(.blue)
     }
@@ -563,6 +583,12 @@ class FirestoreService {
         try await db.collection("multiCityGroupPlans").document(group.id).setData(data)
         
         print("✅ Multi-city group plan created: \(group.id)")
+        
+        AnalyticsService.shared.logGroupCreated(
+             memberCount: memberEmails.count + 1,
+             isMultiCity: true
+         )
+        
     }
 
     func fetchMultiCityGroupPlans() async throws -> [MultiCityGroupPlan] {
@@ -632,6 +658,11 @@ class FirestoreService {
         try await db.collection("groupPlans").document(group.id).setData(data)
         
         try await updateItinerary(sharedItinerary)
+        
+        AnalyticsService.shared.logGroupCreated(
+              memberCount: memberEmails.count + 1,
+              isMultiCity: false
+          )
     }
     
     func fetchGroupPlans() async throws -> [GroupPlan] {
@@ -813,6 +844,12 @@ class FirestoreService {
         try await saveSettlements(groupId: expense.groupId, settlements: newSettlements, collectionName: collectionName)
         
         print("✅ Settlements recalculated")
+        
+        AnalyticsService.shared.logExpenseAdded(
+              amount: expense.amount,
+              category: expense.category.rawValue,
+              splitCount: expense.splitBetween.count
+          )
     }
 
     func fetchGroupExpenses(groupId: String, collectionName: String? = nil) async throws -> [GroupExpense] {

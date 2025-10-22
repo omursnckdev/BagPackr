@@ -14,9 +14,6 @@
         }
       }
     },
-    "/%@" : {
-
-    },
     "%@ - %lld days" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -63,9 +60,6 @@
     "%lld members" : {
 
     },
-    "%lld plans left" : {
-
-    },
     "%lld/%lld" : {
       "localizations" : {
         "en" : {
@@ -85,6 +79,9 @@
           }
         }
       }
+    },
+    "%lld/1 plan used" : {
+
     },
     "•" : {
 
@@ -170,9 +167,6 @@
           }
         }
       }
-    },
-    "7 days free, then %@" : {
-
     },
     "About" : {
       "localizations" : {
@@ -355,6 +349,9 @@
         }
       }
     },
+    "Auto-renewable. Cancel anytime." : {
+
+    },
     "BagPckr" : {
       "localizations" : {
         "tr" : {
@@ -388,6 +385,9 @@
           }
         }
       }
+    },
+    "Best Value!" : {
+
     },
     "Bu çok şehirli geziyi silmek istediğine emin misin?" : {
 
@@ -536,6 +536,9 @@
           }
         }
       }
+    },
+    "Continue" : {
+
     },
     "Create" : {
       "localizations" : {
@@ -916,6 +919,9 @@
         }
       }
     },
+    "Free Plan" : {
+
+    },
     "Gemini Integration" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -938,9 +944,6 @@
       }
     },
     "Generate Multi-City Trip" : {
-
-    },
-    "Generating..." : {
 
     },
     "Get Started" : {
@@ -1326,6 +1329,9 @@
         }
       }
     },
+    "No products available" : {
+
+    },
     "OK" : {
       "localizations" : {
         "tr" : {
@@ -1438,13 +1444,16 @@
         }
       }
     },
-    "Please check your internet connection and try again" : {
+    "Please check your internet connection" : {
 
     },
     "Premium Feature" : {
 
     },
     "Premium Member" : {
+
+    },
+    "Premium Required 💎" : {
 
     },
     "Processing..." : {
@@ -1510,9 +1519,6 @@
         }
       }
     },
-    "Resets in %@" : {
-
-    },
     "Restaurants" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1536,9 +1542,6 @@
           }
         }
       }
-    },
-    "Retry" : {
-
     },
     "Save" : {
       "localizations" : {
@@ -1756,10 +1759,10 @@
         }
       }
     },
-    "Start 7-Day Free Trial" : {
+    "Start Planning!" : {
 
     },
-    "Start Planning!" : {
+    "Start Premium" : {
 
     },
     "Street Food" : {
@@ -1773,7 +1776,7 @@
         }
       }
     },
-    "Success!" : {
+    "Success! 🎉" : {
 
     },
     "Tap number to type" : {
@@ -1917,10 +1920,10 @@
     "Try selecting different interests or clear the filter" : {
 
     },
-    "Unable to load products" : {
+    "Unlimited plans" : {
 
     },
-    "Unlimited plans" : {
+    "Unlimited Travel Planning" : {
 
     },
     "Unlock unlimited travel planning" : {
@@ -1956,9 +1959,6 @@
         }
       }
     },
-    "Wait" : {
-
-    },
     "Water Sports" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1980,10 +1980,13 @@
         }
       }
     },
-    "You're now a premium member! 🎉" : {
+    "Welcome to BagPckr Premium!" : {
 
     },
-    "You've reached your free plan limit. Next reset in %@" : {
+    "You're now a premium member!" : {
+
+    },
+    "You've reached your free plan limit (1 active plan). Upgrade to Premium for unlimited plans!" : {
 
     },
     "Your Itinerary" : {
