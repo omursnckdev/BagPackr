@@ -14,14 +14,7 @@ import Combine
 import GoogleMobileAds
 import FirebaseMessaging
 import UserNotifications
-
-import SwiftUI
-import FirebaseCore
-import GoogleMaps
-import GooglePlaces
-import GoogleMobileAds
-import FirebaseMessaging
-import UserNotifications
+import RevenueCat
 import StoreKit
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
@@ -46,6 +39,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         
         return true
     }
+    
     
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -110,6 +104,8 @@ struct BagPackrApp: App {
         
         // ✅ Initialize StoreKit Manager
         _ = RevenueCatManager.shared
+        Purchases.configure(withAPIKey: "appl_BovfdDFYJtAVgbMvsKENjnYZdxq")
+
         print("✅ RevenueCat Manager initialized")
     }
     
@@ -686,13 +682,19 @@ class FirestoreService {
     // MARK: - User Premium Methods
 
     func updateUserPremiumStatus(userId: String, isPremium: Bool) async throws {
-        let userRef = db.collection("users").document(userId)
-        try await userRef.setData([
-            "isPremium": isPremium,
-            "premiumUpdatedAt": Timestamp(date: Date())
-        ], merge: true)
-        print("✅ User premium status updated: \(isPremium)")
+        let tier: SubscriptionTier = isPremium ? .premium : .free
+        
+        try await db.collection("users")
+            .document(userId)
+            .setData([
+                "subscription": [
+                    "tier": tier.rawValue  // "free" veya "premium"
+                ]
+            ], merge: true)
+        
+        print("✅ Firestore updated: tier = \(tier.rawValue)")
     }
+    
 
     func getUserPremiumStatus(userId: String) async throws -> Bool {
         let userRef = db.collection("users").document(userId)

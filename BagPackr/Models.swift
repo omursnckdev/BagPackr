@@ -144,25 +144,10 @@ enum SubscriptionTier: String, Codable {
 
 struct UserSubscription: Codable {
     var tier: SubscriptionTier = .free
-    var subscriptionEndDate: Date?
-    var isTrialActive: Bool = false
-    var trialEndDate: Date?
-    var productId: String?
     
+    // ⭐ Basitleştirilmiş - sadece tier'a bak
     var isPremium: Bool {
-        guard tier == .premium else { return false }
-        
-        // Check trial
-        if isTrialActive, let trialEnd = trialEndDate {
-            return Date() < trialEnd
-        }
-        
-        // Check subscription
-        if let endDate = subscriptionEndDate {
-            return Date() < endDate
-        }
-        
-        return false
+        return tier == .premium
     }
 }
 
@@ -400,4 +385,3 @@ struct Settlement: Codable, Identifiable {
         case id, from, to, amount, isSettled, settledAt
     }
 }
-

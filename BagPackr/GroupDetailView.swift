@@ -76,6 +76,7 @@ struct GroupDetailView: View {
                 .tag(2)
                 
                 BalancesTabView(
+                    
                     expenses: expenses,
                     members: currentGroup.members
                 )

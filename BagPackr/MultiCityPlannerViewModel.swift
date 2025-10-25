@@ -28,25 +28,11 @@ class MultiCityPlannerViewModel: ObservableObject {
     @Published var customInterests: [String] = []
     
     let availableInterests = [
-        "Beaches",
-        "Nightlife",
-        "Restaurants",
-        "Museums",
-        "Shopping",
-        "Parks",
-        "Adventure Sports",
-        "Historical Sites",
-        "Art Galleries",
-        "Local Markets",
-        "Street Food",
-        "Temples",
-        "Architecture",
-        "Hiking",
-        "Water Sports",
-        "Cafes",
-        "Live Music",
-        "Theater",
-        "Festivals"
+        "Beaches", "Nightlife", "Restaurants", "Museums",
+        "Shopping", "Parks", "Adventure Sports", "Historical Sites",
+        "Art Galleries", "Local Markets", "Street Food", "Temples",
+        "Architecture", "Photography", "Hiking", "Water Sports",
+        "Cafes", "Live Music", "Theater", "Festivals"
     ]
     
     var totalDuration: Int {

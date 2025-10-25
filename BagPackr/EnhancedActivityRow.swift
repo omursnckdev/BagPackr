@@ -76,40 +76,50 @@ struct EnhancedActivityRow: View {
                 Text(activity.description)
                     .font(.subheadline)
                     .foregroundColor(.gray)
-                    .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                 
-                HStack {
-                    Label(activity.time, systemImage: "clock")
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                // Info badges with proper spacing
+                HStack(spacing: 8) {
+                    InfoBadge(
+                        icon: "clock",
+                        text: activity.time,
+                        color: .blue
+                    )
                     
-                    Label(String(format: "%.1f km", activity.distance), systemImage: "location")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    InfoBadge(
+                        icon: "location",
+                        text: String(format: "%.1f km", activity.distance),
+                        color: .gray
+                    )
                     
                     if activity.cost > 0 {
-                        Label("$\(Int(activity.cost))", systemImage: "dollarsign.circle")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                    
-                    Spacer()
-                    
-                    // Navigate Button
-                    Button(action: onNavigate) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
-                            Text("Navigate")
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        InfoBadge(
+                            icon: "dollarsign.circle",
+                            text: "$\(Int(activity.cost))",
+                            color: .green
+                        )
                     }
                 }
+                
+                // Navigate Button - separate row with flexible text
+                Button(action: onNavigate) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
+                            .font(.caption)
+                        Text(NSLocalizedString("Navigate", comment: "Navigate button"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .frame(minWidth: 110)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding()
@@ -135,5 +145,23 @@ struct EnhancedActivityRow: View {
         case "museum", "museums": return .brown
         default: return .blue
         }
+    }
+}
+
+// MARK: - Info Badge Component
+
+struct InfoBadge: View {
+    let icon: String
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        Label(text, systemImage: icon)
+            .font(.caption)
+            .foregroundColor(color)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(color.opacity(0.1))
+            .cornerRadius(8)
     }
 }

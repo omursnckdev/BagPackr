@@ -52,10 +52,9 @@ struct PremiumPaywallView: View {
                         VStack(spacing: 20) {
                             FeatureRow(icon: "infinity", text: "Unlimited Itineraries")
                             FeatureRow(icon: "map.fill", text: "Unlimited Multi-City Plans")
-                            FeatureRow(icon: "person.3.fill", text: "Unlimited Group Plans")
                             FeatureRow(icon: "wand.and.stars", text: "Priority AI Generation")
                             FeatureRow(icon: "bell.slash.fill", text: "Ad-Free Experience")
-                            FeatureRow(icon: "arrow.triangle.2.circlepath", text: "Sync Across Devices")
+                            FeatureRow(icon: "doc.richtext.fill", text: "Export Itineraries as PDF")
                         }
                         .padding()
                         .background(
@@ -144,6 +143,21 @@ struct PremiumPaywallView: View {
         .task {
             if revenueCat.currentOffering == nil {
                 await revenueCat.fetchOfferings()
+            }
+            
+            // 🔍 DEBUG - Geçici ekle
+            if let offering = revenueCat.currentOffering {
+                print("🔍 PremiumPaywallView - Total packages: \(offering.availablePackages.count)")
+                for (index, package) in offering.availablePackages.enumerated() {
+                    print("🔍 Package \(index + 1):")
+                    print("   Identifier: \(package.identifier)")
+                    print("   Product ID: \(package.storeProduct.productIdentifier)")
+                    print("   Title: \(package.storeProduct.localizedTitle)")
+                    print("   Price: \(package.localizedPriceString)")
+                    print("   Type: \(package.packageType)")
+                }
+            } else {
+                print("❌ No offering found!")
             }
             
             // Pre-select first package

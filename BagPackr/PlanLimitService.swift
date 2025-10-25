@@ -37,38 +37,36 @@ class PlanLimitService: ObservableObject {
     
     func checkPremiumStatus() async {
         guard let userId = Auth.auth().currentUser?.uid else {
-            isPremium = false
+            await MainActor.run {
+                isPremium = false
+            }
             return
         }
         
         do {
-            // ⭐ FIXED: Check RevenueCat instead of StoreManager
+            // ⭐ CRITICAL: Only trust RevenueCat (single source of truth)
             await RevenueCatManager.shared.checkSubscriptionStatus()
             let revenueCatIsPremium = RevenueCatManager.shared.isSubscribed
             
-            // Also check Firestore (backup/sync)
-            let firestoreIsPremium = try await FirestoreService.shared.getUserPremiumStatus(userId: userId)
-            
-            // User is premium if EITHER RevenueCat OR Firestore says so
-            isPremium = revenueCatIsPremium || firestoreIsPremium
-            
-            // ⭐ Sync: If RevenueCat says premium but Firestore doesn't, update Firestore
-            if revenueCatIsPremium && !firestoreIsPremium {
-                try await FirestoreService.shared.updateUserPremiumStatus(userId: userId, isPremium: true)
-                print("✅ Synced premium status to Firestore")
+            // ⭐ Update local state
+            await MainActor.run {
+                self.isPremium = revenueCatIsPremium
+                print("📊 PlanLimitService - isPremium: \(self.isPremium)")
             }
             
-            // ⭐ Sync: If Firestore says premium but RevenueCat doesn't, trust RevenueCat
-            if !revenueCatIsPremium && firestoreIsPremium {
-                try await FirestoreService.shared.updateUserPremiumStatus(userId: userId, isPremium: false)
-                print("⚠️ Subscription expired, updated Firestore")
-            }
+            // ⭐ Sync Firestore to match RevenueCat
+            try await FirestoreService.shared.updateUserPremiumStatus(
+                userId: userId,
+                isPremium: revenueCatIsPremium
+            )
             
-            print("📊 Premium status: \(isPremium) (RevenueCat: \(revenueCatIsPremium), Firestore: \(firestoreIsPremium))")
+            print("✅ Premium status synced: \(revenueCatIsPremium)")
             
         } catch {
             print("❌ Error checking premium status: \(error)")
-            isPremium = false
+            await MainActor.run {
+                isPremium = false
+            }
         }
     }
     

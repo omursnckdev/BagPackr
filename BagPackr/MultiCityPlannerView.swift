@@ -67,6 +67,13 @@ struct MultiCityPlannerView: View {
                         await limitService.loadActivePlansCount()
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .premiumStatusChanged)) { _ in
+                    print("🔔 Premium status changed notification received in MultiCityPlannerView")
+                    Task {
+                        await limitService.checkPremiumStatus()
+                        await limitService.loadActivePlansCount()
+                    }
+                }
             }
             .navigationTitle("Multi-City Trip")
             .sheet(isPresented: $showAddCity) {
