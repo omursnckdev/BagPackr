@@ -151,7 +151,7 @@ struct MultiCityPlannerView: View {
                             .font(.headline)
                             .foregroundColor(.primary)
                         // ⭐ FIXED: Show active plans count instead of reset time
-                        Text("\(limitService.activePlansCount)/1 plan used")
+                        Text("\(limitService.activePlansCount)/3 plan used")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }

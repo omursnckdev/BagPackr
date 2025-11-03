@@ -112,6 +112,17 @@
       }
     },
     "%lld/1 plan used" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/1 plan kullanıldı"
+          }
+        }
+      }
+    },
+    "%lld/3 plan used" : {
 
     },
     "•" : {
@@ -146,6 +157,9 @@
           }
         }
       }
+    },
+    "🎁 %@ FREE" : {
+
     },
     "$%@" : {
       "localizations" : {
@@ -198,6 +212,9 @@
           }
         }
       }
+    },
+    "7 days" : {
+
     },
     "About" : {
       "localizations" : {
@@ -365,6 +382,7 @@
       }
     },
     "Are you sure you want to delete this group? This action cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -416,6 +434,7 @@
       }
     },
     "Auto-renewable. Cancel anytime." : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -873,6 +892,7 @@
       }
     },
     "Delete Group" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -1138,6 +1158,9 @@
           }
         }
       }
+    },
+    "FREE" : {
+
     },
     "Free Plan" : {
       "localizations" : {
@@ -1681,7 +1704,11 @@
         }
       }
     },
+    "Oops! Something went wrong." : {
+
+    },
     "Oops! That email or password doesn’t match our records." : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -2321,6 +2348,9 @@
         }
       }
     },
+    "Then %@" : {
+
+    },
     "This action cannot be undone" : {
       "localizations" : {
         "tr" : {
@@ -2568,7 +2598,11 @@
         }
       }
     },
+    "Welcome to BagPackr Premium!" : {
+
+    },
     "Welcome to BagPckr Premium!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {

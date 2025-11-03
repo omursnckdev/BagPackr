@@ -15,7 +15,7 @@ class PlanLimitService: ObservableObject {
     @Published var isPremium: Bool = false
     @Published var activePlansCount: Int = 0
     
-    private let FREE_TIER_LIMIT = 1  // 1 aktif plan (toplam)
+    private let FREE_TIER_LIMIT = 3  // 3 aktif plan (toplam)
     private let db = Firestore.firestore()
     
     var remainingPlans: Int {

@@ -62,6 +62,28 @@ class RevenueCatManager: ObservableObject {
             print("❌ Error fetching offerings: \(error)")
         }
     }
+
+
+    func getTrialInfo(for package: Package) -> (hasTrial: Bool, duration: String?) {
+        guard let introDiscount = package.storeProduct.introductoryDiscount,
+              introDiscount.price == 0 else { // Free trial check
+            return (false, nil)
+        }
+        
+        let period = introDiscount.subscriptionPeriod
+        let value = period.value
+        let unit: String = {
+            switch period.unit {
+            case .day: return value == 1 ? "day" : "days"
+            case .week: return value == 1 ? "week" : "weeks"
+            case .month: return value == 1 ? "month" : "months"
+            case .year: return value == 1 ? "year" : "years"
+            @unknown default: return "days"
+            }
+        }()
+        
+        return (true, "\(value) \(unit)")
+    }
     
     // MARK: - Check Subscription Status
     func checkSubscriptionStatus() async {

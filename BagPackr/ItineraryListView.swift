@@ -109,7 +109,7 @@ struct ItineraryListView: View {
                     .font(.subheadline.bold())
                     .foregroundColor(.primary)
                 
-                Text("\(planLimitService.activePlansCount)/1 plan used")
+                Text("\(planLimitService.activePlansCount)/3 plan used")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

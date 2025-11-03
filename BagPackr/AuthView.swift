@@ -187,7 +187,7 @@ struct AuthView: View {
         .alert("Error", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Oops! That email or password doesn’t match our records.")
+            Text("Oops! Something went wrong.")
         }
     }
     
