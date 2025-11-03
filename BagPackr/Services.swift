@@ -22,10 +22,28 @@ import FirebaseFirestore
 class GeminiService {
     static let shared = GeminiService()
     private let model: GenerativeModel
-    
+    private let decoder = JSONDecoder()
+
     private init() {
-        model = GenerativeModel(name: "gemini-2.5-flash-lite", apiKey: "AIzaSyAoUnnvwIeBbxYo0RncGtteOJCaViLwJRI")
+        let config = GenerationConfig(
+            temperature: 0.7,
+            topP: 0.95,
+            responseMimeType: "application/json"
+        )
+
+        model = GenerativeModel(
+            name: "gemini-1.5-flash-latest",
+            apiKey: "AIzaSyAoUnnvwIeBbxYo0RncGtteOJCaViLwJRI",
+            safetySettings: Self.relaxedSafetySettings,
+            generationConfig: config
+        )
     }
+
+    private static let relaxedSafetySettings: [SafetySetting] = [
+        SafetySetting(harmCategory: .harassment, threshold: .blockNone),
+        SafetySetting(harmCategory: .hateSpeech, threshold: .blockNone),
+        SafetySetting(harmCategory: .dangerousContent, threshold: .blockNone)
+    ]
     
     private var isTurkish: Bool {
         Locale.current.language.languageCode?.identifier == "tr"
@@ -111,60 +129,8 @@ class GeminiService {
             """
         }
         
-        let response = try await model.generateContent(prompt)
-        
-        guard let text = response.text else {
-            let errorMsg = isTurkish ? "Gemini'den yanıt alınamadı" : "No response from Gemini"
-            throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
-        }
-        
-        // Clean the response more aggressively
-        var cleanedText = text
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Find the first { and last } to extract just the JSON
-        if let startIndex = cleanedText.firstIndex(of: "{"),
-           let endIndex = cleanedText.lastIndex(of: "}") {
-            cleanedText = String(cleanedText[startIndex...endIndex])
-        }
-        
-        print("Cleaned JSON:")
-        print(cleanedText)
-        print("---")
-        
-        guard let data = cleanedText.data(using: .utf8) else {
-            let errorMsg = isTurkish ? "Yanıt çevrilemedi" : "Failed to convert response"
-            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
-        }
-        
-        let decoder = JSONDecoder()
-        let geminiResponse: GeminiResponse
-        
-        do {
-            geminiResponse = try decoder.decode(GeminiResponse.self, from: data)
-        } catch {
-            print("Decoding Error: \(error)")
-            let errorMsg = isTurkish ? "JSON okunamadı: \(error.localizedDescription)" : "Failed to parse JSON: \(error.localizedDescription)"
-            throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
-        }
-        
-        let dailyPlans = geminiResponse.dailyPlans.map { plan in
-            DailyPlan(
-                day: plan.day,
-                activities: plan.activities.map { activity in
-                    Activity(
-                        name: activity.name,
-                        type: activity.type,
-                        description: activity.description,
-                        time: activity.time,
-                        distance: activity.distance,
-                        cost: activity.cost
-                    )
-                }
-            )
-        }
+        let geminiResponse = try await requestGeminiJSON(for: prompt, label: "Single City")
+        let dailyPlans = mapDailyPlans(from: geminiResponse)
         
         return Itinerary(
             userId: userId,
@@ -289,49 +255,79 @@ extension GeminiService {
             """
         }
         
-        let response = try await model.generateContent(prompt)
+        let geminiResponse = try await requestGeminiJSON(for: prompt, label: "Multi City")
+        let dailyPlans = mapDailyPlans(from: geminiResponse)
         
+        // Create combined location name
+        let locationName = locations.map { $0.name }.joined(separator: " → ")
+        
+        return Itinerary(
+            userId: userId,
+            location: locationName,
+            duration: totalDuration,
+            interests: interests,
+            dailyPlans: dailyPlans,
+            budgetPerDay: budgetPerDay
+        )
+    }
+}
+
+private extension GeminiService {
+    func requestGeminiJSON(for prompt: String, label: String) async throws -> GeminiResponse {
+        let response: GenerateContentResponse
+
+        do {
+            response = try await model.generateContent(prompt)
+        } catch {
+            let message = isTurkish
+                ? "Gemini isteği başarısız: \(error.localizedDescription)"
+                : "Gemini request failed: \(error.localizedDescription)"
+            throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: message])
+        }
+
         guard let text = response.text else {
             let errorMsg = isTurkish ? "Gemini'den yanıt alınamadı" : "No response from Gemini"
             throw NSError(domain: "Gemini", code: 500, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
-        
-        // Clean the response - remove markdown and extra text
-        var cleanedText = text
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Extract JSON from the response
-        if let startIndex = cleanedText.firstIndex(of: "{"),
-           let endIndex = cleanedText.lastIndex(of: "}") {
-            cleanedText = String(cleanedText[startIndex...endIndex])
-        }
-        
-        print("Cleaned Multi-City JSON:")
-        print(cleanedText)
-        print("---")
-        
+
+        let cleanedText = extractJSON(from: text, label: label)
+
         guard let data = cleanedText.data(using: .utf8) else {
             let errorMsg = isTurkish ? "Yanıt çevrilemedi" : "Failed to convert response"
             throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
-        
-        let decoder = JSONDecoder()
-        let geminiResponse: GeminiResponse
-        
+
         do {
-            geminiResponse = try decoder.decode(GeminiResponse.self, from: data)
+            return try decoder.decode(GeminiResponse.self, from: data)
         } catch {
             print("Decoding Error: \(error)")
-            let errorMsg = isTurkish ?
-                "JSON okunamadı: \(error.localizedDescription)" :
-                "Failed to parse JSON: \(error.localizedDescription)"
+            let errorMsg = isTurkish
+                ? "JSON okunamadı: \(error.localizedDescription)"
+                : "Failed to parse JSON: \(error.localizedDescription)"
             throw NSError(domain: "Parsing", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
-        
-        // Convert to DailyPlan format
-        let dailyPlans = geminiResponse.dailyPlans.map { plan in
+    }
+
+    func extractJSON(from text: String, label: String) -> String {
+        var cleanedText = text
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let startIndex = cleanedText.firstIndex(of: "{"),
+           let endIndex = cleanedText.lastIndex(of: "}") {
+            cleanedText = String(cleanedText[startIndex...endIndex])
+        }
+
+        print("\(label) Cleaned JSON:")
+        print(cleanedText)
+        print("---")
+
+        return cleanedText
+    }
+
+    func mapDailyPlans(from response: GeminiResponse) -> [DailyPlan] {
+        response.dailyPlans.map { plan in
             DailyPlan(
                 day: plan.day,
                 activities: plan.activities.map { activity in
@@ -346,18 +342,6 @@ extension GeminiService {
                 }
             )
         }
-        
-        // Create combined location name
-        let locationName = locations.map { $0.name }.joined(separator: " → ")
-        
-        return Itinerary(
-            userId: userId,
-            location: locationName,
-            duration: totalDuration,
-            interests: interests,
-            dailyPlans: dailyPlans,
-            budgetPerDay: budgetPerDay
-        )
     }
 }
 
