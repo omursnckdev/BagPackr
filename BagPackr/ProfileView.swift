@@ -92,7 +92,7 @@ struct ProfileView: View {
                                 
                                 InfoRow(
                                     icon: "airplane.departure",
-                                    title: String(localized: "BagPckr Smart Travel Assistant"),
+                                    title: String(localized: "BagPckr AI Travel Planner"),
                                     subtitle: appVersion
                                 )
                                 InfoRow(

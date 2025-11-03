@@ -21,9 +21,9 @@
 		677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 677C9A312E8D3CCE00F9958C /* GoogleMobileAds */; };
 		677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7072E8E667200DE95A9 /* FirebaseFunctions */; };
 		677FC70A2E8E667200DE95A9 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 677FC7092E8E667200DE95A9 /* FirebaseFunctionsCombine-Community */; };
-		678AF3592EA2549A00A6F5C8 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 678AF3582EA2549A00A6F5C8 /* StoreKit.framework */; };
 		67A0170B2E8FA783000E573B /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 67A0170A2E8FA783000E573B /* FirebaseMessaging */; };
 		67BDEA512E965CEA00FB1658 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 67BDEA502E965CEA00FB1658 /* GoogleService-Info.plist */; };
+		67FF0D492EAD8DC20040D245 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 678AF3582EA2549A00A6F5C8 /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,9 +71,9 @@
 				677FC7082E8E667200DE95A9 /* FirebaseFunctions in Frameworks */,
 				671A0C372E8D0D2300A85EA5 /* GooglePlaces in Frameworks */,
 				671A0C2E2E8D08C400A85EA5 /* FirebaseFirestore in Frameworks */,
+				67FF0D492EAD8DC20040D245 /* StoreKit.framework in Frameworks */,
 				671A0C392E8D0D2300A85EA5 /* GooglePlacesSwift in Frameworks */,
 				677C9A322E8D3CCE00F9958C /* GoogleMobileAds in Frameworks */,
-				678AF3592EA2549A00A6F5C8 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,7 +362,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -406,7 +406,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aoSnc.BagPakr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

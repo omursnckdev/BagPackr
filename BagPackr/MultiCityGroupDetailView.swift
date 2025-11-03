@@ -64,6 +64,7 @@ struct MultiCityGroupDetailView: View {
                 .tag(2)
                 
                 BalancesTabView(
+                    
                     expenses: expenses,
                     members: currentGroup.members
                 )

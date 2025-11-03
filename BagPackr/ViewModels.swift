@@ -63,17 +63,28 @@ class AuthViewModel: ObservableObject {
             AnalyticsService.shared.setUserProperty(isPremium: isPremium)
         }
     }
-    
     func signUp(email: String, password: String) async throws {
         let result = try await Auth.auth().createUser(withEmail: email, password: password)
         self.currentUser = result.user
         self.isAuthenticated = true
         
         AnalyticsService.shared.logSignUp()
+        
         // ⭐ Create user document, load profile, and save token
         await createUserDocument()
         await loadUserProfile()
         await saveDeviceToken()
+        
+        // ⭐ CRITICAL: Identify user in RevenueCat and check subscription
+        RevenueCatManager.shared.identifyUser(result.user.uid)
+        await RevenueCatManager.shared.checkSubscriptionStatus()
+        
+        // ⭐ Set analytics property (should be false for new users)
+        if let isPremium = userProfile?.isPremium {
+            AnalyticsService.shared.setUserProperty(isPremium: isPremium)
+        }
+        
+        print("✅ New user signed up as FREE")
     }
     
     func signOut() {

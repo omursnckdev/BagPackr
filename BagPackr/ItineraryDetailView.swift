@@ -106,7 +106,7 @@ struct ItineraryDetailView: View {
                     GroupShareView(itinerary: itinerary)
                 }
                 .sheet(isPresented: $showPremiumSheet) {
-                    PremiumUpgradeView()
+                    PremiumPaywallView()
                 }
                 .alert("Premium Feature", isPresented: $showPremiumAlert) {
                     Button("Upgrade to Premium") {
@@ -328,6 +328,5 @@ struct ItineraryDetailView: View {
         }
     }
 }
-
 
 

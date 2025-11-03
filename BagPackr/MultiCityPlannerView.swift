@@ -68,6 +68,13 @@ struct MultiCityPlannerView: View {
                         await limitService.loadActivePlansCount()
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .premiumStatusChanged)) { _ in
+                    print("🔔 Premium status changed notification received in MultiCityPlannerView")
+                    Task {
+                        await limitService.checkPremiumStatus()
+                        await limitService.loadActivePlansCount()
+                    }
+                }
             }
             .navigationTitle("Multi-City Trip")
             .sheet(isPresented: $showAddCity) {
@@ -145,7 +152,7 @@ struct MultiCityPlannerView: View {
                             .font(.headline)
                             .foregroundColor(.primary)
                         // ⭐ FIXED: Show active plans count instead of reset time
-                        Text("\(limitService.activePlansCount)/1 plan used")
+                        Text("\(limitService.activePlansCount)/3 plan used")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }

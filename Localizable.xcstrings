@@ -48,17 +48,48 @@
         }
       }
     },
+    "%lld activities" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld aktivite"
+          }
+        }
+      }
+    },
     "%lld cities" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld şehir"
+          }
+        }
+      }
     },
     "%lld days" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gün"
+          }
+        }
+      }
     },
     "%lld ilgiye göre filtreleniyor" : {
 
     },
     "%lld members" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld üye"
+          }
+        }
+      }
     },
     "%lld/%lld" : {
       "localizations" : {
@@ -81,6 +112,17 @@
       }
     },
     "%lld/1 plan used" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld/1 plan kullanıldı"
+          }
+        }
+      }
+    },
+    "%lld/3 plan used" : {
 
     },
     "•" : {
@@ -115,6 +157,9 @@
           }
         }
       }
+    },
+    "🎁 %@ FREE" : {
+
     },
     "$%@" : {
       "localizations" : {
@@ -168,6 +213,9 @@
         }
       }
     },
+    "7 days" : {
+
+    },
     "About" : {
       "localizations" : {
         "tr" : {
@@ -211,13 +259,34 @@
       }
     },
     "Add at least 2 cities to create a multi-city trip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu gezi oluşturmak için minimum 2 şehir seç"
+          }
+        }
+      }
     },
     "Add City" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şehir Ekle"
+          }
+        }
+      }
     },
     "Add City Stop" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şehir Ekle"
+          }
+        }
+      }
     },
     "Add custom interest" : {
       "localizations" : {
@@ -313,7 +382,15 @@
       }
     },
     "Are you sure you want to delete this group? This action cannot be undone." : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu grubu silmek istediğinizden emin misiniz?\nBu işlem geri alınamaz."
+          }
+        }
+      }
     },
     "Are you sure you want to delete this itinerary? This action cannot be undone." : {
       "localizations" : {
@@ -326,7 +403,14 @@
       }
     },
     "Are you sure you want to delete this multi-city trip?" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu çok şehirli geziyi silmek istediğinizden emin misiniz?\n\n\n\n"
+          }
+        }
+      }
     },
     "Are you sure you want to sign out?" : {
       "localizations" : {
@@ -350,7 +434,15 @@
       }
     },
     "Auto-renewable. Cancel anytime." : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otomatik yenilenir. İstediğiniz zaman iptal edebilirsiniz."
+          }
+        }
+      }
     },
     "BagPckr" : {
       "localizations" : {
@@ -362,8 +454,25 @@
         }
       }
     },
-    "BagPckr Smart Travel Assistant" : {
+    "BagPckr AI Travel Planner" : {
 
+    },
+    "BagPckr Smart Travel Assistant" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BagPckr AI Travel Planner"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BagPckr Akıllı Gezi Planlayıcı"
+          }
+        }
+      }
     },
     "Balances" : {
       "localizations" : {
@@ -387,13 +496,33 @@
       }
     },
     "Best Value!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Karlı Fiyat!"
+          }
+        }
+      }
     },
     "Bu çok şehirli geziyi silmek istediğine emin misin?" : {
 
     },
     "Bu gezinizi silmek istediğinizden emin misiniz?" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete this multi-city trip?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Bu gezinizi silmek istediğinizden emin misiniz?"
+          }
+        }
+      }
     },
     "Budget" : {
       "extractionState" : "stale",
@@ -469,7 +598,14 @@
       }
     },
     "Cancel anytime" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İstediğin zaman iptal et"
+          }
+        }
+      }
     },
     "Category" : {
       "localizations" : {
@@ -482,16 +618,44 @@
       }
     },
     "Cities (%lld)" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şehirler (%lld)"
+          }
+        }
+      }
     },
     "City" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şehir"
+          }
+        }
+      }
     },
     "Clear" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temizle"
+          }
+        }
+      }
     },
     "Clear Filter" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtreyi Temizle"
+          }
+        }
+      }
     },
     "Close" : {
       "localizations" : {
@@ -538,7 +702,14 @@
       }
     },
     "Continue" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devam"
+          }
+        }
+      }
     },
     "Create" : {
       "localizations" : {
@@ -561,7 +732,14 @@
       }
     },
     "Create an itinerary first to start a group plan" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir grup planı başlatmak için önce bir gezi planı oluşturun.\n\n\n\n"
+          }
+        }
+      }
     },
     "Create Group" : {
       "localizations" : {
@@ -633,8 +811,25 @@
         }
       }
     },
+    "Current" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlık"
+          }
+        }
+      }
+    },
     "Custom" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Özelleştirilmiş"
+          }
+        }
+      }
     },
     "Custom Interests" : {
       "localizations" : {
@@ -697,7 +892,15 @@
       }
     },
     "Delete Group" : {
-
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grubu Sil"
+          }
+        }
+      }
     },
     "Delete Itinerary" : {
       "localizations" : {
@@ -710,7 +913,14 @@
       }
     },
     "Delete Multi-City Trip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu Gezi Planını Sİl"
+          }
+        }
+      }
     },
     "Delete My Account" : {
       "localizations" : {
@@ -723,7 +933,14 @@
       }
     },
     "Delete Trip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geziyi Sil"
+          }
+        }
+      }
     },
     "Deleting account..." : {
       "localizations" : {
@@ -765,6 +982,16 @@
         }
       }
     },
+    "Done" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamamlandı"
+          }
+        }
+      }
+    },
     "Duration" : {
       "localizations" : {
         "tr" : {
@@ -776,7 +1003,14 @@
       }
     },
     "e.g., Europe Adventure" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "örn., Avrupa Gezisi"
+          }
+        }
+      }
     },
     "e.g., Temple, Sushi, Kebab" : {
       "localizations" : {
@@ -899,6 +1133,12 @@
             "state" : "new",
             "value" : "Filtering by %1$lld interest%2$@"
           }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld ilgi alanına göre filtreleniyor"
+          }
         }
       }
     },
@@ -919,8 +1159,18 @@
         }
       }
     },
-    "Free Plan" : {
+    "FREE" : {
 
+    },
+    "Free Plan" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ücretsiz Plan"
+          }
+        }
+      }
     },
     "Gemini Integration" : {
       "extractionState" : "manual",
@@ -944,7 +1194,14 @@
       }
     },
     "Generate Multi-City Trip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu Gezi Planı Oluştur"
+          }
+        }
+      }
     },
     "Get Started" : {
 
@@ -974,7 +1231,14 @@
 
     },
     "Google Maps" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google Haritalar"
+          }
+        }
+      }
     },
     "Group Details" : {
       "localizations" : {
@@ -1092,7 +1356,14 @@
       }
     },
     "Itinerary Saved!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi başarıyla kaydedildi!"
+          }
+        }
+      }
     },
     "Join BagPckr today" : {
       "localizations" : {
@@ -1116,10 +1387,24 @@
       }
     },
     "Loading ad..." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reklam yükleniyor…"
+          }
+        }
+      }
     },
     "Loading products..." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın almalar yükleniyor…"
+          }
+        }
+      }
     },
     "Local Markets" : {
       "extractionState" : "manual",
@@ -1214,19 +1499,57 @@
       }
     },
     "MOST POPULAR" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EN POPÜLER"
+          }
+        }
+      }
+    },
+    "Move to Day" : {
 
     },
     "Multi-City" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu Gezi"
+          }
+        }
+      }
     },
     "Multi-City Trip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu Gezi"
+          }
+        }
+      }
     },
     "Multi-City Trips" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çoklu Gezi"
+          }
+        }
+      }
     },
     "MULTI-CITY TRIPS" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ÇOKLU GEZİ PLANI"
+          }
+        }
+      }
     },
     "Museums" : {
       "extractionState" : "manual",
@@ -1260,6 +1583,7 @@
       }
     },
     "Navigate" : {
+      "comment" : "Navigate button",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -1270,7 +1594,14 @@
       }
     },
     "Next" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki"
+          }
+        }
+      }
     },
     "Nightlife" : {
       "extractionState" : "manual",
@@ -1284,7 +1615,14 @@
       }
     },
     "No activities match your filter" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filtrenizle eşleşen etkinlik bulunamadı."
+          }
+        }
+      }
     },
     "No expenses to calculate" : {
       "localizations" : {
@@ -1317,7 +1655,14 @@
       }
     },
     "No Itineraries Available" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiç Plan Bulunamadı"
+          }
+        }
+      }
     },
     "No itineraries yet" : {
       "localizations" : {
@@ -1329,8 +1674,25 @@
         }
       }
     },
+    "No locations found" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konum bulunamadı"
+          }
+        }
+      }
+    },
     "No products available" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kullanılabilir ürün bulunamadı."
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -1342,7 +1704,11 @@
         }
       }
     },
+    "Oops! Something went wrong." : {
+
+    },
     "Oops! That email or password doesn’t match our records." : {
+      "extractionState" : "stale",
       "localizations" : {
         "tr" : {
           "stringUnit" : {
@@ -1369,6 +1735,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "owes %1$@%2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "borçlu %1$@%2$@"
           }
         }
       }
@@ -1426,13 +1798,34 @@
       }
     },
     "PDF export is available for premium members. Upgrade now to export your itineraries!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF dışa aktarma yalnızca premium üyeler için kullanılabilir.\nPlanlarınızı dışa aktarmak için şimdi yükseltin!"
+          }
+        }
+      }
     },
     "PDF export is available for premium members. Upgrade now to export your trips!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF dışa aktarma yalnızca premium üyeler için kullanılabilir.\nSeyahatlerinizi dışa aktarmak için şimdi yükseltin!"
+          }
+        }
+      }
     },
     "Plan Limit Reached" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi limiti doldu"
+          }
+        }
+      }
     },
     "Plan your perfect journey" : {
       "localizations" : {
@@ -1445,19 +1838,54 @@
       }
     },
     "Please check your internet connection" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İnternet bağlantını kontrol et"
+          }
+        }
+      }
     },
     "Premium Feature" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium Özellik"
+          }
+        }
+      }
     },
     "Premium Member" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium Üye"
+          }
+        }
+      }
     },
     "Premium Required 💎" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium Gerekli 💎"
+          }
+        }
+      }
     },
     "Processing..." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oluşturuluyor…"
+          }
+        }
+      }
     },
     "Profile" : {
       "localizations" : {
@@ -1531,7 +1959,14 @@
       }
     },
     "Restore Purchases" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satın Almayı Geri Yükle"
+          }
+        }
+      }
     },
     "Results may not be accurate" : {
       "localizations" : {
@@ -1549,6 +1984,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kaydet"
+          }
+        }
+      }
+    },
+    "Search currency" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para birimi seç"
+          }
+        }
+      }
+    },
+    "Search for a city or place" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şehir ara"
           }
         }
       }
@@ -1574,7 +2029,34 @@
       }
     },
     "Select an itinerary..." : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı Seç"
+          }
+        }
+      }
+    },
+    "Select Currency" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para Birimi Seç"
+          }
+        }
+      }
+    },
+    "Select Destination" : {
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varış Noktası Seç"
+          }
+        }
+      }
     },
     "Select Interests" : {
       "localizations" : {
@@ -1711,13 +2193,34 @@
 
     },
     "Single City Trips" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Planı"
+          }
+        }
+      }
     },
     "SINGLE CITY TRIPS" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TEKLİ GEZİ PLANLARI"
+          }
+        }
+      }
     },
     "Skip" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geç"
+          }
+        }
+      }
     },
     "Spent: $%lld" : {
       "localizations" : {
@@ -1760,10 +2263,24 @@
       }
     },
     "Start Planning!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planlamaya Başla!"
+          }
+        }
+      }
     },
     "Start Premium" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium Ol!"
+          }
+        }
+      }
     },
     "Street Food" : {
       "extractionState" : "manual",
@@ -1777,10 +2294,24 @@
       }
     },
     "Success! 🎉" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başarılı! 🎉"
+          }
+        }
+      }
     },
     "Tap number to type" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yazmaya başla"
+          }
+        }
+      }
     },
     "Tap to change" : {
       "localizations" : {
@@ -1817,6 +2348,9 @@
         }
       }
     },
+    "Then %@" : {
+
+    },
     "This action cannot be undone" : {
       "localizations" : {
         "tr" : {
@@ -1838,7 +2372,14 @@
       }
     },
     "total" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "toplam"
+          }
+        }
+      }
     },
     "Total Expenses" : {
       "localizations" : {
@@ -1851,13 +2392,34 @@
       }
     },
     "Total Trip:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam Gezi: "
+          }
+        }
+      }
     },
     "Total:" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam:"
+          }
+        }
+      }
     },
     "Total: %lld days" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toplam: %lld gün"
+          }
+        }
+      }
     },
     "Total: $%lld" : {
       "extractionState" : "stale",
@@ -1902,10 +2464,24 @@
       }
     },
     "Trip saved successfully!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Başarıyla Kaydedildi!"
+          }
+        }
+      }
     },
     "Trip Title" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi Başlığı"
+          }
+        }
+      }
     },
     "Trip: %@" : {
       "localizations" : {
@@ -1918,22 +2494,64 @@
       }
     },
     "Try selecting different interests or clear the filter" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farklı ilgi alanlarını seçmeyi deneyin veya filtreyi temizleyin."
+          }
+        }
+      }
     },
     "Unlimited plans" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sınırsız Plan"
+          }
+        }
+      }
     },
     "Unlimited Travel Planning" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sınırsız Seyahat Planlama"
+          }
+        }
+      }
     },
     "Unlock unlimited travel planning" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sınırsız seyahat planlamanın kilidini açın"
+          }
+        }
+      }
     },
     "Upgrade" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yükselt"
+          }
+        }
+      }
     },
     "Upgrade to Premium" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premiuma Yükselt"
+          }
+        }
+      }
     },
     "Vazgeç" : {
 
@@ -1980,14 +2598,39 @@
         }
       }
     },
-    "Welcome to BagPckr Premium!" : {
+    "Welcome to BagPackr Premium!" : {
 
+    },
+    "Welcome to BagPckr Premium!" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BagPckr Premium’a Hoşgeldin!"
+          }
+        }
+      }
     },
     "You're now a premium member!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artık premium üyesin!"
+          }
+        }
+      }
     },
     "You've reached your free plan limit (1 active plan). Upgrade to Premium for unlimited plans!" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ücretsiz plan sınırınıza ulaştınız (1 aktif plan).\nSınırsız plan için Premium’a yükseltin!"
+          }
+        }
+      }
     },
     "Your Itinerary" : {
       "localizations" : {
@@ -2000,7 +2643,14 @@
       }
     },
     "Your trip has been saved successfully" : {
-
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gezi başarıyla kaydedildi"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

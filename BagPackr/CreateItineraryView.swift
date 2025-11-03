@@ -16,6 +16,7 @@ struct CreateItineraryView: View {
     @State private var showPaywall = false
     @State private var showMapPicker = false
     @State private var isWaitingForAd = false
+    
 
     @StateObject private var planLimitService = PlanLimitService.shared
     // Locale-based values
@@ -106,7 +107,6 @@ struct CreateItineraryView: View {
                      }
         }
     }
-    // ✅✅✅ ADD THIS ENTIRE STRUCT AT THE BOTTOM OF FILE ✅✅✅
     struct SaveSuccessNotification: View {
         var body: some View {
             HStack(spacing: 12) {
@@ -141,7 +141,6 @@ struct CreateItineraryView: View {
             .padding(.horizontal)
         }
     }
-    // ✅✅✅ END ✅✅✅
     
     // MARK: - View Components
     

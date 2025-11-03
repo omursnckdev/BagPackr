@@ -10,9 +10,6 @@ import SwiftUI
 struct GroupPlansView: View {
     @StateObject private var viewModel = GroupPlansViewModel()
     @State private var showCreateGroup = false
-    @State private var showDeleteAlert = false
-    @State private var groupToDelete: GroupPlan?
-    @State private var multiCityGroupToDelete: MultiCityGroupPlan?
     
     private var isEmpty: Bool {
         viewModel.groupPlans.isEmpty && viewModel.multiCityGroupPlans.isEmpty
@@ -39,22 +36,6 @@ struct GroupPlansView: View {
             }
             .sheet(isPresented: $showCreateGroup) {
                 CreateGroupView(viewModel: viewModel)
-            }
-            // ✅ Alert eklendi
-            .alert("Delete Group", isPresented: $showDeleteAlert) {
-                Button("Cancel", role: .cancel) {
-                    groupToDelete = nil
-                    multiCityGroupToDelete = nil
-                }
-                Button("Delete", role: .destructive) {
-                    if let group = groupToDelete {
-                        deleteGroup(group)
-                    } else if let multiGroup = multiCityGroupToDelete {
-                        deleteMultiCityGroup(multiGroup)
-                    }
-                }
-            } message: {
-                Text("Are you sure you want to delete this group? This action cannot be undone.")
             }
         }
         .onAppear {
@@ -112,7 +93,7 @@ struct GroupPlansView: View {
     // MARK: - Group List
     private var groupListView: some View {
         List {
-            // ✅ Multi-city groups section eklendi
+            // Multi-city groups section
             if !viewModel.multiCityGroupPlans.isEmpty {
                 Section(header: sectionHeader(title: "Multi-City Groups", icon: "map.fill", color: .blue)) {
                     ForEach(viewModel.multiCityGroupPlans) { group in
@@ -127,7 +108,7 @@ struct GroupPlansView: View {
                 }
             }
             
-            // ✅ Regular groups section
+            // Regular groups section
             if !viewModel.groupPlans.isEmpty {
                 Section(header: sectionHeader(title: "Single City Groups", icon: "person.3.fill", color: .purple)) {
                     ForEach(viewModel.groupPlans) { group in
@@ -147,7 +128,7 @@ struct GroupPlansView: View {
         .transition(.opacity.combined(with: .scale))
     }
     
-    // ✅ Section header helper
+    // Section header helper
     private func sectionHeader(title: String, icon: String, color: Color) -> some View {
         HStack {
             Image(systemName: icon)
@@ -160,36 +141,28 @@ struct GroupPlansView: View {
     // MARK: - Delete Actions
     private func deleteGroups(at offsets: IndexSet) {
         for index in offsets {
-            groupToDelete = viewModel.groupPlans[index]
-            showDeleteAlert = true
+            let group = viewModel.groupPlans[index]
+            Task {
+                do {
+                    try await FirestoreService.shared.deleteGroup(group.id)
+                    print("✅ Group deleted successfully")
+                } catch {
+                    print("❌ Error deleting group: \(error)")
+                }
+            }
         }
     }
     
     private func deleteMultiCityGroups(at offsets: IndexSet) {
         for index in offsets {
-            multiCityGroupToDelete = viewModel.multiCityGroupPlans[index]
-            showDeleteAlert = true
-        }
-    }
-    
-    private func deleteGroup(_ group: GroupPlan) {
-        Task {
-            do {
-                try await FirestoreService.shared.deleteGroup(group.id)
-                print("✅ Group deleted successfully")
-            } catch {
-                print("❌ Error deleting group: \(error)")
-            }
-        }
-    }
-    
-    private func deleteMultiCityGroup(_ group: MultiCityGroupPlan) {
-        Task {
-            do {
-                try await FirestoreService.shared.deleteMultiCityGroup(group.id)
-                print("✅ Multi-city group deleted successfully")
-            } catch {
-                print("❌ Error deleting multi-city group: \(error)")
+            let group = viewModel.multiCityGroupPlans[index]
+            Task {
+                do {
+                    try await FirestoreService.shared.deleteMultiCityGroup(group.id)
+                    print("✅ Multi-city group deleted successfully")
+                } catch {
+                    print("❌ Error deleting multi-city group: \(error)")
+                }
             }
         }
     }
