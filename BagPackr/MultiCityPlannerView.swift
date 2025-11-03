@@ -18,11 +18,14 @@ struct MultiCityPlannerView: View {
     @State private var budgetText = ""
     @State private var isEditingBudget = false
     @State private var isWaitingForAd = false
-    
+    @State private var limitWarningMessage = "You've reached your free plan limit. Upgrade to Premium for unlimited plans!"
+
     // Locale detection
     private var isTurkish: Bool {
         Locale.current.language.languageCode?.identifier == "tr"
     }
+
+    private let limitWarningFallbackMessage = "You've reached your free plan limit. Upgrade to Premium for unlimited plans!"
     
     var currencySymbol: String {
         isTurkish ? "₺" : "$"
@@ -91,14 +94,13 @@ struct MultiCityPlannerView: View {
                     }
                 )
             }
-            // ⭐ FIXED: Updated alert message
             .alert("Plan Limit Reached", isPresented: $showLimitWarning) {
                 Button("Upgrade to Premium") {
                     showPremiumSheet = true
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("You've reached your free plan limit (1 active plan). Upgrade to Premium for unlimited plans!")
+                Text(limitWarningMessage)
             }
             .alert("Error", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) { }
@@ -538,33 +540,31 @@ struct MultiCityPlannerView: View {
         dismissKeyboard()
     }
     
-    // MARK: - Actions (⭐ FIXED)
-    
-    // MARK: - Actions (⭐ IMPROVED)
+    // MARK: - Actions
 
     private func handleGenerateButtonTap() {
-        // Check plan limit first
-        if !limitService.canCreatePlan {
-    private func handleGenerateButtonTap() {
-        if !limitService.canGeneratePlan() {
-            showLimitWarning = true
-            return
-        }
-        
         Task {
+            let (canCreate, reason) = await limitService.canGeneratePlan()
+
+            guard canCreate else {
+                await MainActor.run {
+                    limitWarningMessage = reason ?? limitWarningFallbackMessage
+                    showLimitWarning = true
+                }
+                return
+            }
+
             // Generate multi-city trip
             await viewModel.generateMultiCityTrip()
-            
-            // ⭐ IMPROVED: Only increment if generation was successful
+
+            // Only increment if generation was successful or we have a silent success case
             if viewModel.generatedMultiCity != nil {
                 await limitService.incrementPlanCount()
                 print("✅ Multi-city plan created, count incremented")
             } else if !viewModel.showError {
-                // If no error shown but also no result, still increment
-                // (edge case handling)
                 await limitService.incrementPlanCount()
             }
-            
+
             // Show ad
             await waitForAdAndShow()
         }
