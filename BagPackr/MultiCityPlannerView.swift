@@ -1,5 +1,6 @@
 //
 //  MultiCityPlannerView.swift - FIXED
+//  MultiCityPlannerView.swift - WITH AD SUPPORT
 //  BagPackr
 //
 
@@ -544,6 +545,8 @@ struct MultiCityPlannerView: View {
     private func handleGenerateButtonTap() {
         // Check plan limit first
         if !limitService.canCreatePlan {
+    private func handleGenerateButtonTap() {
+        if !limitService.canGeneratePlan() {
             showLimitWarning = true
             return
         }

@@ -6,7 +6,7 @@ import AppTrackingTransparency
 class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     @Published var interstitial: InterstitialAd?
     @Published var isAdReady = false
-    @Published var shouldShowAds = true {  // ⭐ NEW: Premium kontrolü
+    @Published var shouldShowAds = true {  // ⭐ Premium kontrolü
         didSet {
             if !shouldShowAds {
                 print("🚫 Ads disabled - Premium active")
@@ -15,21 +15,21 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
             }
         }
     }
-    
+
     static let shared = AdManager()
     
-    // ⭐ UPDATED: Test ve Production ID'leri ayır
+    // ⭐ Test ve Production ID'leri ayır
     #if DEBUG
-    let interstitialAdUnitID = "ca-app-pub-3940256099942544/4411468910" // Google test ID
+    let interstitialAdUnitID = "ca-app-pub-3940256099942544/4411468910" // Test ID
     #else
-    let interstitialAdUnitID = "ca-app-pub-5314394610297471/7407902751" // Sizin gerçek ID
+    let interstitialAdUnitID = "ca-app-pub-5314394610297471/7407902751" // Production ID
     #endif
     
     override init() {
         super.init()
         configureGAD()
         
-        // ⭐ NEW: Listen for premium status changes
+        // ⭐ Premium değişimini dinle
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(premiumStatusChanged),
@@ -43,7 +43,6 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
     }
     
     func configureGAD() {
-        // GAD'i başlat
         MobileAds.shared.start { [weak self] status in
             print("✅ GAD initialized")
             self?.requestATT()
@@ -55,15 +54,15 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
             ATTrackingManager.requestTrackingAuthorization { [weak self] status in
                 DispatchQueue.main.async {
                     print("ℹ️ ATT Status: \(status.rawValue)")
-                    self?.checkPremiumAndLoadAd()  // ⭐ CHANGED: Premium kontrolü ile yükle
+                    self?.checkPremiumAndLoadAd()
                 }
             }
         } else {
-            checkPremiumAndLoadAd()  // ⭐ CHANGED
+            checkPremiumAndLoadAd()
         }
     }
     
-    // ⭐ NEW: Premium kontrolü yap sonra reklam yükle
+    // ⭐ Premium kontrolü yap, reklam aç/kapat
     func checkPremiumAndLoadAd() {
         Task { @MainActor in
             await RevenueCatManager.shared.checkSubscriptionStatus()
@@ -71,28 +70,28 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
             self.shouldShowAds = !isPremium
             
             if self.shouldShowAds {
-                print("📺 User is free tier, loading ads")
+                print("📺 Free user → Loading ads")
                 self.loadAd()
             } else {
-                print("👑 User is premium, no ads!")
+                print("👑 Premium user → No ads")
             }
         }
     }
     
-    // ⭐ NEW: Notification handler
+    // ⭐ Premium değişimi geldiğinde
     @objc private func premiumStatusChanged() {
-        print("🔔 AdManager received premium status change")
+        print("🔔 Premium status changed → recheck ads")
         checkPremiumAndLoadAd()
     }
     
-    // ⭐ UPDATED: Premium kontrolü ile
     func loadAd() {
         guard shouldShowAds else {
-            print("👑 Premium user, skipping ad load")
+            print("👑 Premium user, skip ad load")
             return
         }
         
         print("🔄 Loading interstitial ad...")
+        
         let request = Request()
         
         InterstitialAd.load(
@@ -101,7 +100,7 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
         ) { [weak self] ad, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("❌ Failed to load: \(error.localizedDescription)")
+                    print("❌ Failed to load ad: \(error.localizedDescription)")
                     self?.isAdReady = false
                     return
                 }
@@ -109,12 +108,11 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
                 self?.interstitial = ad
                 self?.interstitial?.fullScreenContentDelegate = self
                 self?.isAdReady = true
-                print("✅ Interstitial loaded and ready!")
+                print("✅ Interstitial ready")
             }
         }
     }
     
-    // ⭐ UPDATED: Premium kontrolü ile
     func showAd() {
         guard shouldShowAds else {
             print("👑 Premium user, not showing ad")
@@ -122,34 +120,30 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
         }
         
         guard isAdReady, let interstitial = interstitial else {
-            print("⚠️ Interstitial not ready yet")
-            loadAd() // Try loading if not ready
+            print("⚠️ Ad not ready → Loading...")
+            loadAd()
             return
         }
         
-        // Root view controller'ı bul
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.keyWindow,
               var root = window.rootViewController else {
-            print("❌ Root view controller not found")
+            print("❌ No root VC")
             return
         }
         
-        // En üstteki view controller'ı bul
         while let presented = root.presentedViewController {
             root = presented
         }
         
-        print("🎬 Presenting ad from: \(type(of: root))")
+        print("🎬 Showing interstitial ad")
         interstitial.present(from: root)
     }
     
-    
-    
-    // MARK: - GADFullScreenContentDelegate (v12 metodları)
+    // MARK: - GADFullScreenContentDelegate
     
     func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
-        print("👁️ Ad impression recorded")
+        print("👁️ Ad impression")
     }
     
     func adDidRecordClick(_ ad: FullScreenPresentingAd) {
@@ -165,18 +159,16 @@ class AdManager: NSObject, ObservableObject, FullScreenContentDelegate {
         isAdReady = false
         interstitial = nil
         
-        // ⭐ UPDATED: Yeni reklam yükle (premium değilse)
         if shouldShowAds {
             loadAd()
         }
     }
     
     func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        print("❌ Failed to present: \(error.localizedDescription)")
+        print("❌ Failed to show ad: \(error.localizedDescription)")
         isAdReady = false
         interstitial = nil
         
-        // ⭐ UPDATED: Yeniden dene (premium değilse)
         if shouldShowAds {
             loadAd()
         }
