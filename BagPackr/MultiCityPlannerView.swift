@@ -538,23 +538,23 @@ struct MultiCityPlannerView: View {
         dismissKeyboard()
     }
     
-    // MARK: - Actions (⭐ FIXED)
-    
-    // MARK: - Actions (⭐ IMPROVED)
+    // MARK: - Actions
 
     private func handleGenerateButtonTap() {
-        // Check plan limit first
-        if !limitService.canCreatePlan {
-    private func handleGenerateButtonTap() {
-        if !limitService.canGeneratePlan() {
-            showLimitWarning = true
-            return
-        }
-        
         Task {
+            // Check plan limit first
+            let result = await limitService.canGeneratePlan()
+
+            if !result.canCreate {
+                await MainActor.run {
+                    showLimitWarning = true
+                }
+                return
+            }
+
             // Generate multi-city trip
             await viewModel.generateMultiCityTrip()
-            
+
             // ⭐ IMPROVED: Only increment if generation was successful
             if viewModel.generatedMultiCity != nil {
                 await limitService.incrementPlanCount()
@@ -564,12 +564,12 @@ struct MultiCityPlannerView: View {
                 // (edge case handling)
                 await limitService.incrementPlanCount()
             }
-            
+
             // Show ad
             await waitForAdAndShow()
         }
     }
-    
+
     private func waitForAdAndShow() async {
         let maxWaitTime: TimeInterval = 4.0
         let checkInterval: TimeInterval = 0.2
