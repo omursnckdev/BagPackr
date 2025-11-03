@@ -53,10 +53,18 @@ class RevenueCatManager: ObservableObject {
     func fetchOfferings() async {
         do {
             let offerings = try await Purchases.shared.offerings()
-            
+
             await MainActor.run {
-                self.currentOffering = offerings.current
-                print("✅ Offerings fetched: \(offerings.current?.availablePackages.count ?? 0) packages")
+                if let current = offerings.current {
+                    self.currentOffering = current
+                } else {
+                    // Some configurations (e.g. sandbox) may not mark an offering as current yet.
+                    // Fallback to the default offering or the first available one so the paywall can load.
+                    self.currentOffering = offerings.offering(identifier: "default") ?? offerings.all.values.first
+                }
+
+                let packageCount = self.currentOffering?.availablePackages.count ?? 0
+                print("✅ Offerings fetched: \(packageCount) packages")
             }
         } catch {
             print("❌ Error fetching offerings: \(error)")
